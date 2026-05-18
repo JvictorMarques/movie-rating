@@ -1,0 +1,41 @@
+mode: daemonset
+
+fullnameOverride: otel-collector-node
+
+image:
+  repository: otel/opentelemetry-collector-contrib
+
+presets:
+  hostMetrics:
+    enabled: true
+
+config:
+  receivers:
+    hostmetrics:
+      root_path: /hostfs
+      collection_interval: 30s
+      scrapers:
+        cpu:
+        memory:
+        disk:
+        network:
+        filesystem:
+          exclude_mount_points:
+            mount_points: [/dev, /proc, /sys, /run, /hostfs/proc, /hostfs/sys]
+            match_type: strict
+
+  processors:
+    batch: {}
+
+  exporters:
+    prometheusremotewrite/mimir:
+      endpoint: http://mimir-gateway.observability.svc.cluster.local/api/v1/push
+      tls:
+        insecure: true
+
+  service:
+    pipelines:
+      metrics:
+        receivers: [hostmetrics]
+        processors: [batch]
+        exporters: [prometheusremotewrite/mimir]
