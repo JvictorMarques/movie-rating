@@ -1,3 +1,9 @@
+## v1.4.0 (2026-05-18)
+
+### Feat
+
+- **k8s**: add observability stack Helm values for kind cluster
+
 ## v1.3.0 (2026-05-18)
 
 ### Feat

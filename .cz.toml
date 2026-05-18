@@ -1,6 +1,6 @@
 [tool.commitizen]
 version_provider = "commitizen"
-version = "1.3.0"
+version = "1.4.0"
 version_files = [
     "app/pyproject.toml:^version",
     "k8s/movie-rating/Chart.yaml:^appVersion",
