@@ -1,3 +1,31 @@
+## v1.3.0 (2026-05-18)
+
+### Feat
+
+- **terraform**: add root module wiring VPC, ECR, RDS, SSM, and EKS
+- **terraform/eks**: add node group IAM role, input variables, and provider config
+- **terraform/eks**: add EKS cluster and managed node group resources
+- **terraform/ssm**: add SSM parameter store module for database secrets
+- **terraform/rds**: add RDS input variables, provider config, and lock file
+- **terraform/rds**: add RDS instance and subnet group resources
+- **terraform/ecr**: add ECR repository module
+- **terraform/vpc**: add outputs, provider version constraints, and lock file
+- **terraform/vpc**: add private subnets and route tables
+- **terraform/vpc**: add internet gateway, NAT gateway, and public subnets
+- **k8s**: add automated cluster setup script
+- **docker**: add dedicated migrations build stage
+
+### Fix
+
+- **k8s**: update PostgreSQL image repository to bitnami legacy
+- **api**: update health check response and sync uv.lock version
+- **helm**: downgrade PostgreSQL chart dependency to 16.7.27 (PostgreSQL 17)
+- **compose**: switch to named build targets and drop inline migration commands
+
+### Refactor
+
+- **k8s**: remove inline alembic commands and fix helmfile hook event
+
 ## v1.2.1 (2026-05-14)
 
 ### Fix

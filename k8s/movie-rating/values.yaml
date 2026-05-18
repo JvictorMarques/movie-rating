@@ -8,6 +8,7 @@ secrets:
   dbDatabase: movie-rating
   dbAddress: movie-rating-postgresql
   dbPort: 5432
+  otlpEndpoint: http://otel-collector.observability.svc.cluster.local:4317
 
 postgresql:
   image:

@@ -5,6 +5,10 @@ repositories:
     url: https://charts.konghq.com
   - name: fairwinds-stable
     url: https://charts.fairwinds.com/stable
+  - name: grafana
+    url: https://grafana.github.io/helm-charts
+  - name: open-telemetry
+    url: https://open-telemetry.github.io/opentelemetry-helm-charts
 
 environments:
   local:
@@ -31,6 +35,64 @@ releases:
     values:
       - values/goldilocks.yaml
 
+  - name: mimir
+    chart: grafana/mimir-distributed
+    namespace: observability
+    createNamespace: true
+    installed: {{ eq .Environment.Name "local" }}
+    values:
+      - values/mimir.yaml
+
+  - name: tempo
+    chart: grafana/tempo
+    namespace: observability
+    createNamespace: true
+    installed: {{ eq .Environment.Name "local" }}
+    values:
+      - values/tempo.yaml
+
+  - name: loki
+    chart: grafana/loki
+    namespace: observability
+    createNamespace: true
+    installed: {{ eq .Environment.Name "local" }}
+    values:
+      - values/loki.yaml
+
+  - name: otel-collector
+    chart: open-telemetry/opentelemetry-collector
+    namespace: observability
+    createNamespace: true
+    installed: {{ eq .Environment.Name "local" }}
+    needs:
+      - observability/mimir
+      - observability/tempo
+      - observability/loki
+    values:
+      - values/otel-collector.yaml
+
+  - name: otel-collector-node
+    chart: open-telemetry/opentelemetry-collector
+    namespace: observability
+    createNamespace: true
+    installed: {{ eq .Environment.Name "local" }}
+    needs:
+      - observability/mimir
+    values:
+      - values/otel-collector-node.yaml
+
+  - name: grafana
+    chart: grafana/grafana
+    namespace: observability
+    createNamespace: true
+    installed: {{ eq .Environment.Name "local" }}
+    needs:
+      - observability/mimir
+      - observability/tempo
+      - observability/loki
+    values:
+      - values/grafana.yaml
+
   - name: movie-rating
     chart: ./movie-rating
     namespace: movie-rating
@@ -48,4 +110,5 @@ releases:
     needs:
       - kong/kong
       - goldilocks/goldilocks
+      - observability/otel-collector
     {{- end }}
