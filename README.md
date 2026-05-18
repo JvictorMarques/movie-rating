@@ -1,16 +1,10 @@
 # Movie Rating API
 
-![Python](https://img.shields.io/badge/Python-3.13%2B-blue?logo=python)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.135%2B-009688?logo=fastapi)
-![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0-D71F00?logo=sqlalchemy&logoColor=white)
-![Pydantic](https://img.shields.io/badge/Pydantic-2.0-E92063?logo=pydantic&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-336791?logo=postgresql)
-![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-425CC7?logo=opentelemetry&logoColor=white)
-![Grafana](https://img.shields.io/badge/Grafana-F46800?logo=grafana&logoColor=white)
-![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?logo=kubernetes&logoColor=white)
-![Helm](https://img.shields.io/badge/Helm-0F1689?logo=helm&logoColor=white)
-![Version](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2FJvictorMarques%2Fmovie_rating%2Frefs%2Fheads%2Fmain%2Fapp%2Fpyproject.toml&query=%24.project.version&label=version&color=brightgreen)
-![License](https://img.shields.io/badge/license-MIT-blue)
+
+![Python](https://img.shields.io/badge/Python-3.13%2B-blue?logo=python) ![FastAPI](https://img.shields.io/badge/FastAPI-0.135%2B-009688?logo=fastapi) ![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0-D71F00?logo=sqlalchemy&logoColor=D71F00) ![Pydantic](https://img.shields.io/badge/Pydantic-2.0-E92063?logo=pydantic&logoColor=E92063) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-336791?logo=postgresql) ![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-1.41.1-425CC7?logo=opentelemetry&logoColor=B3C6FF) ![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white) ![Grafana](https://img.shields.io/badge/Grafana-F46800?logo=grafana&logoColor=white) ![Kubernetes](https://img.shields.io/badge/Kubernetes-1.35-326CE5?logo=kubernetes&logoColor=326CE5) ![Helm](https://img.shields.io/badge/Helm-4.2.0-0F1689?logo=helm&logoColor=0F1689) ![Terraform](https://img.shields.io/badge/Terraform-1.15+-844FBA?logo=terraform&logoColor=844FBA) ![pre-commit](https://img.shields.io/badge/pre--commit-4.5.1-FAB040?logo=pre-commit&logoColor=FAB040)
+
+![Version](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2FJvictorMarques%2Fmovie_rating%2Frefs%2Fheads%2Fmain%2Fapp%2Fpyproject.toml&query=%24.project.version&label=version&color=brightgreen) ![License](https://img.shields.io/badge/license-MIT-blue)
+
 
 A REST API for managing and rating movies, built with FastAPI and async SQLAlchemy. Users can register, movies can be created with a cast of actors, and each user can rate any movie on a scale from 0 to 10.
 
@@ -42,6 +36,7 @@ A REST API for managing and rating movies, built with FastAPI and async SQLAlche
 | Container | Docker + Docker Compose |
 | Observability | OpenTelemetry SDK, Grafana, Mimir, Tempo, Loki |
 | Kubernetes | [kind](https://kind.sigs.k8s.io/), [Helm](https://helm.sh/), [Helmfile](https://helmfile.readthedocs.io/), Kong, Goldilocks |
+| Cloud infrastructure | [Terraform](https://www.terraform.io/) — AWS VPC, ECR, RDS, SSM, EKS |
 | Package manager | [uv](https://docs.astral.sh/uv/) |
 | Linter / Formatter | [Ruff](https://docs.astral.sh/ruff/) |
 
@@ -333,6 +328,7 @@ movie-rating/
 ├── compose.yaml                # Root orchestration — includes app/ and docker/ composes
 ├── CHANGELOG.md
 ├── .pre-commit-config.yaml
+├── terraform/                  # AWS infrastructure (VPC, ECR, RDS, SSM, EKS modules)
 ├── app/                        # FastAPI application
 │   ├── app.py                  # Entry point
 │   ├── compose.yaml            # App + PostgreSQL + migrations services
@@ -408,11 +404,17 @@ The `k8s/` directory contains everything needed to run the application on a loca
 ```
 k8s/
 ├── kind-config.yaml              # kind cluster definition (1 control-plane + 2 workers, ports 80/443 mapped to host)
-├── helmfile.yaml.gotmpl          # Helmfile with kong, goldilocks, and movie-rating releases
+├── helmfile.yaml.gotmpl          # Helmfile with all releases (kong, goldilocks, observability stack, movie-rating)
 ├── startup-cluster.sh            # Automated script — creates cluster, builds/loads images, deploys, configures /etc/hosts
 ├── values/
 │   ├── kong.yaml                 # Values for Kong Ingress Controller
-│   └── goldilocks.yaml           # Values for Goldilocks (VPA recommendations)
+│   ├── goldilocks.yaml           # Values for Goldilocks (VPA recommendations)
+│   ├── grafana.yaml              # Grafana with datasources (Mimir, Tempo, Loki) and dashboard provisioning
+│   ├── loki.yaml                 # Loki log aggregation
+│   ├── mimir.yaml                # Mimir metrics storage (Prometheus-compatible)
+│   ├── tempo.yaml                # Tempo distributed tracing backend
+│   ├── otel-collector.yaml       # OTel Collector — receives OTLP, exports to Mimir/Tempo/Loki
+│   └── otel-collector-node.yaml  # OTel Collector DaemonSet — scrapes host/node metrics
 └── movie-rating/                 # Application Helm chart
     ├── Chart.yaml                # Chart metadata; depends on Bitnami PostgreSQL chart 16.7.27 (PostgreSQL 17)
     ├── values.yaml               # Default values (local mode, image tags, resource requests/limits, ingress host)
@@ -480,7 +482,8 @@ helmfile -f k8s/helmfile.yaml.gotmpl -e local sync
 This installs:
 - **Kong Ingress Controller** (`kong` namespace) — routes external traffic into the cluster
 - **Goldilocks** (`goldilocks` namespace) — VPA-based resource recommendations
-- **movie-rating** (`movie-rating` namespace) — the application chart, which includes PostgreSQL as a subchart and runs migrations as a pre-upgrade Job
+- **Observability stack** (`observability` namespace) — Mimir, Tempo, Loki, OTel Collector (app + node), and Grafana; all wired together via in-cluster DNS
+- **movie-rating** (`movie-rating` namespace) — the application chart, which includes PostgreSQL as a subchart and runs migrations as a pre-upgrade Job; depends on the OTel Collector being ready
 
 > The application may take a few moments to become ready while the migration Job completes. Monitor progress with:
 > ```bash
@@ -507,6 +510,47 @@ The API will then be available at `http://movie-rating.local.com/api/v1/`.
 | `app.ingress.className` | `kong` | Ingress class (Kong) |
 | `migrations.image.tag` | `1.0.0` | Tag of the `movie-rating-migrations` builder image |
 | `secrets.*` | see `values.yaml` | Database credentials and address injected as environment variables |
+
+---
+
+## Terraform (AWS)
+
+The `terraform/` directory contains a modular Terraform configuration that provisions the full AWS infrastructure needed to run the application in production.
+
+```
+terraform/
+├── main.tf           # Root module — wires VPC, ECR, RDS, SSM, and EKS together
+├── variables.tf      # Input variables (region, project name, DB config, EKS version, etc.)
+├── outputs.tf        # Root outputs
+├── terraform.tfvars  # Variable values (not committed — add to .gitignore)
+└── modules/
+    ├── vpc/          # VPC with public/private subnets, IGW, NAT gateway, route tables
+    ├── ecr/          # ECR repository for Docker images
+    ├── rds/          # RDS PostgreSQL instance in private subnets with subnet group
+    ├── ssm/          # SSM Parameter Store — stores DB credentials (name, user, password, endpoint)
+    └── eks/          # EKS cluster + managed node group with IAM roles
+```
+
+### Module overview
+
+| Module | Resources |
+|---|---|
+| `vpc` | VPC, public/private subnets across AZs, IGW, NAT gateway, route tables |
+| `ecr` | ECR repository for `movie-rating` images |
+| `rds` | RDS PostgreSQL instance (private subnets, configurable class/storage/multi-AZ) |
+| `ssm` | SSM parameters for DB name, username, password, and endpoint (sourced from RDS outputs) |
+| `eks` | EKS cluster + managed node group with dedicated IAM roles |
+
+### Usage
+
+```bash
+cd terraform/
+terraform init
+terraform plan
+terraform apply
+```
+
+All modules receive their inputs from the root `main.tf` — the RDS endpoint and credentials are automatically forwarded to SSM after the database is created.
 
 ---
 

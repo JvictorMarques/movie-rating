@@ -11,6 +11,7 @@ movie-rating/
 ├── app/                # FastAPI application (source, tests, migrations, scripts)
 ├── k8s/                # Kubernetes manifests (Helm chart + Helmfile)
 ├── docker/             # OTel Collector, Grafana, Mimir, Tempo, Loki configs
+├── terraform/          # AWS infrastructure modules (VPC, ECR, RDS, SSM, EKS)
 ├── compose.yaml        # Root orchestration — includes app/ and docker/ composes
 ├── CHANGELOG.md
 └── .pre-commit-config.yaml
@@ -149,4 +150,14 @@ The app exports traces, metrics, and structured logs via OTLP gRPC to the collec
 - Ruff with `line-length = 79`, single quotes, preview mode
 - `select = ['I', 'F', 'E', 'W', 'PL', 'PT']`; ignored: `PLR2004`, `PLR0917`, `PLR0913`
 - mypy with `pydantic.mypy` plugin; check `src/` only
-- pre-commit hooks at repo root: trailing whitespace, EOF fixer, YAML check, ruff lint+format, mypy, pytest
+- pre-commit hooks at repo root: trailing whitespace, EOF fixer, YAML check, ruff lint+format, mypy, pytest, terraform fmt/validate
+
+## README badges
+
+Badges are always on a **single line** inside `<div align="center">`, in this exact order:
+
+1. **App stack** — Python, FastAPI, SQLAlchemy, Pydantic, PostgreSQL, OpenTelemetry
+2. **Container / Viz** — Docker, Grafana
+3. **Orchestration** — Kubernetes, Helm
+4. **Infra / Tooling** — Terraform, pre-commit
+5. **Meta** — Version (dynamic from pyproject.toml), License — always last
