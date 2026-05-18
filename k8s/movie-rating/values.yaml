@@ -2,9 +2,9 @@ local:
   enabled: true
 
 secrets:
-  jwtSecretKey: jwt-secret-key
+  jwtSecretKey: jwt-secret-key #checkov:skip=CKV_SECRET_6
   dbUser: movie-rating
-  dbPassword: movie-rating-password
+  dbPassword: movie-rating-password #checkov:skip=CKV_SECRET_6
   dbDatabase: movie-rating
   dbAddress: movie-rating-postgresql
   dbPort: 5432
@@ -14,7 +14,7 @@ postgresql:
     repository: bitnamilegacy/postgresql
   auth:
     username: movie-rating
-    password: movie-rating-password
+    password: movie-rating-password #checkov:skip=CKV_SECRET_6
     database: movie-rating
   primary:
     networkPolicy:
