@@ -1,5 +1,43 @@
 {{- if .Values.local.enabled }}
 ---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "movie-rating.migration.secret-name" . }}
+  namespace: {{ .Release.Namespace }}
+type: Opaque
+stringData:
+  DB_USER: {{ .Values.postgresql.auth.username }}
+  DB_PASSWORD: {{ .Values.postgresql.auth.password }}
+  DB_DATABASE: {{ .Values.postgresql.auth.database }}
+  DB_ADDRESS: {{ include "movie-rating.local.db-address" . }}
+{{- else }}
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: {{ .Chart.Name }}-migrations-external-secret
+  namespace: {{ .Release.Namespace }}
+spec:
+  secretStoreRef:
+    name: {{ .Values.secretStore.name }}
+    kind: SecretStore
+  target:
+    name: {{ include "movie-rating.migration.secret-name" . }}
+  data:
+    - secretKey: DB_ADDRESS
+      remoteRef:
+        key: /movie-rating/database/address
+    - secretKey: DB_DATABASE
+      remoteRef:
+        key: /movie-rating/database/name
+    - secretKey: DB_USER
+      remoteRef:
+        key: /movie-rating/database/username
+    - secretKey: DB_PASSWORD
+      remoteRef:
+        key: /movie-rating/database/password
+{{- end }}
+---
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -14,9 +52,13 @@ spec:
       automountServiceAccountToken: false
       containers:
       - name: migrations
-        image: {{ .Chart.Name }}-migrations:{{ .Values.migrations.image.tag | default .Chart.AppVersion }}
+        image: {{ .Values.migrations.image.tag }}:{{ .Values.migrations.image.version | default .Chart.AppVersion }}
+        {{- if .Values.local.enabled }}
         imagePullPolicy: IfNotPresent
-        env: {{ include "movie-rating.migrations.env" . | indent 10 }}
+        {{- end }}
+        envFrom:
+        - secretRef:
+            name: {{ include "movie-rating.migration.secret-name" . }}
         resources:
           requests:
             cpu: {{ .Values.migrations.resources.requests.cpu }}
@@ -27,4 +69,3 @@ spec:
             memory: {{ .Values.migrations.resources.limits.memory }}
             ephemeral-storage: {{ index .Values.migrations.resources.limits "ephemeral-storage" }}
       restartPolicy: Never
-{{- end }}

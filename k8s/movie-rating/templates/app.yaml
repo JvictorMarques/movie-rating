@@ -1,32 +1,78 @@
 ---
+{{- if .Values.local.enabled -}}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "movie-rating.app.secret-name" . }}
+  namespace: {{ .Release.Namespace }}
+type: Opaque
+stringData:
+  DB_USER: {{ .Values.postgresql.auth.username }}
+  DB_PASSWORD: {{ .Values.postgresql.auth.password }}
+  DB_DATABASE: {{ .Values.postgresql.auth.database }}
+  DB_ADDRESS: {{ include "movie-rating.local.db-address" . }}
+  OTLP_ENDPOINT: {{ .Values.otlp.endpoint }}
+{{- else }}
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: {{ .Chart.Name }}-app-external-secret
+  namespace: {{ .Release.Namespace }}
+spec:
+  secretStoreRef:
+    name: {{ .Values.secretStore.name }}
+    kind: SecretStore
+  target:
+    name: {{ include "movie-rating.app.secret-name" . }}
+    template:
+      data:
+        ENVIRONMENT: production
+  data:
+    - secretKey: DB_ADDRESS
+      remoteRef:
+        key: /movie-rating/database/address
+    - secretKey: DB_DATABASE
+      remoteRef:
+        key: /movie-rating/database/name
+    - secretKey: DB_USER
+      remoteRef:
+        key: /movie-rating/database/username
+    - secretKey: DB_PASSWORD
+      remoteRef:
+        key: /movie-rating/database/password
+    - secretKey: JWT_SECRET_KEY
+      remoteRef:
+        key: /movie-rating/jwt_secret_key
+{{- end }}
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Chart.Name }}-api
+  name: {{ include "movie-rating.app.name" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     app: {{ .Chart.Name }}
 spec:
   selector:
     matchLabels:
-      app: {{ .Chart.Name }}-api
+      app: {{ include "movie-rating.app.name" . }}
   template:
     metadata:
       labels:
-        app: {{ .Chart.Name }}-api
+        app: {{ include "movie-rating.app.name" . }}
     spec:
       automountServiceAccountToken: false
       containers:
-      - name: {{ .Chart.Name }}-api
+      - name: {{ include "movie-rating.app.name" . }}
         {{- if .Values.local.enabled }}
         imagePullPolicy: IfNotPresent
         {{- end }}
-        image: {{ .Chart.Name }}:{{ .Values.app.image.tag | default .Chart.AppVersion }}
+        image: {{ .Values.app.image.tag }}:{{ .Values.app.image.version | default .Chart.AppVersion }}
         ports:
         - containerPort: 8000
-        {{- if .Values.local.enabled }}
-        env: {{ include "movie-rating.app.env" . | indent 10 }}
-        {{- end }}
+        envFrom:
+        - secretRef:
+            name: {{ include "movie-rating.app.secret-name" . }}
         resources:
           requests:
             cpu: {{ .Values.app.resources.requests.cpu }}
@@ -40,20 +86,27 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Chart.Name }}-api
+  name: {{ include "movie-rating.app.name" . }}
   namespace: {{ .Release.Namespace }}
 spec:
   selector:
-    app: {{ .Chart.Name }}-api
+    app: {{ include "movie-rating.app.name" . }}
   ports:
   - port: 8000
     targetPort: 8000
 ---
+{{- if .Values.app.ingress.enabled -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ .Chart.Name }}
+  name: {{ include "movie-rating.app.name" . }}
   namespace: {{ .Release.Namespace }}
+  {{- if eq .Values.app.ingress.className "alb" }}
+  annotations:
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/healthcheck-path: /health
+  {{- end }}
 spec:
   ingressClassName: {{ .Values.app.ingress.className }}
   rules:
@@ -64,6 +117,7 @@ spec:
         path: "/"
         backend:
           service:
-            name: {{ .Chart.Name }}-api
+            name: {{ include "movie-rating.app.name" . }}
             port:
               number: 8000
+{{- end -}}
