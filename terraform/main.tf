@@ -1,20 +1,3 @@
-terraform {
-  required_version = ">= 1.15.0"
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 6.45.0"
-    }
-  }
-}
-
-provider "aws" {
-  region = var.aws_region
-  default_tags {
-    tags = merge(var.default_tags, { Project = var.project_name })
-  }
-}
-
 module "vpc" {
   source       = "./modules/vpc"
   project_name = var.project_name
@@ -30,6 +13,7 @@ module "rds" {
   source       = "./modules/rds"
   project_name = var.project_name
   subnet_ids   = module.vpc.private_subnet_ids
+  vpc_id       = module.vpc.id
 
   engine_version = var.engine_version
 
@@ -40,6 +24,8 @@ module "rds" {
   instance_storage = var.instance_storage
 
   multi_az = var.multi_az
+
+  eks_cluster_security_group_id = module.eks.cluster_security_group_id
 }
 
 module "ssm" {
@@ -58,6 +44,9 @@ module "ssm" {
     address = {
       value = module.rds.endpoint
     }
+    port = {
+      value = module.rds.port
+    }
   }
 }
 
@@ -66,4 +55,30 @@ module "eks" {
   project_name       = var.project_name
   kubernetes_version = var.eks_version
   private_subnet_ids = module.vpc.private_subnet_ids
+}
+
+module "eks_blueprints_addons" {
+  source  = "aws-ia/eks-blueprints-addons/aws"
+  version = "~> 1.22.0"
+
+  cluster_name      = module.eks.cluster_name
+  cluster_endpoint  = module.eks.cluster_endpoint
+  cluster_version   = module.eks.cluster_version
+  oidc_provider_arn = module.eks.oidc_provider_arn
+
+  observability_tag = null
+
+  enable_aws_load_balancer_controller = true
+  aws_load_balancer_controller = {
+    set = [
+      {
+        name  = "vpcId"
+        value = module.vpc.id
+      }
+    ]
+  }
+  enable_cluster_autoscaler = true
+  enable_metrics_server     = true
+  enable_external_secrets   = true
+
 }

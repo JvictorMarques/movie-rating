@@ -16,7 +16,8 @@ resource "aws_db_instance" "this" {
   username = var.db_username
   password = random_password.this.result
 
-  db_subnet_group_name = aws_db_subnet_group.this.name
+  vpc_security_group_ids = [aws_security_group.this.id]
+  db_subnet_group_name   = aws_db_subnet_group.this.name
 
   multi_az = var.multi_az
 

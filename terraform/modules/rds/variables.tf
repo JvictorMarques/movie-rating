@@ -64,3 +64,13 @@ variable "skip_final_snapshot" {
   type        = bool
   default     = true
 }
+
+variable "vpc_id" {
+  type        = string
+  description = "The ID of the VPC to create the RDS security group inbound rules"
+}
+
+variable "eks_cluster_security_group_id" {
+  type        = string
+  description = "Security group ID to allow EKS cluster access to RDS instance"
+}

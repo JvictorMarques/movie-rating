@@ -1,4 +1,4 @@
-resource "aws_ssm_parameter" "this" {
+resource "aws_ssm_parameter" "database" {
   for_each = local.database_secrets_keys
 
   name        = "/${var.project_name}/database/${each.key}"

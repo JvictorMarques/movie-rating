@@ -16,5 +16,10 @@ output "password" {
 
 output "endpoint" {
   description = "The RDS instance endpoint"
-  value       = aws_db_instance.this.endpoint
+  value       = split(":", aws_db_instance.this.endpoint)[0]
+}
+
+output "port" {
+  description = "The RDS instance port"
+  value       = split(":", aws_db_instance.this.endpoint)[1]
 }

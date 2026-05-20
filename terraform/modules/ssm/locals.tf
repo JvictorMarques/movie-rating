@@ -4,6 +4,7 @@ locals {
     username = var.database_secrets.username
     password = var.database_secrets.password
     address  = var.database_secrets.address
+    port     = var.database_secrets.port
   }
 } # This local variable is used to create a map of the keys for the database secrets.
 # It is used in the aws_ssm_parameter resource to create a parameter for each key in the map

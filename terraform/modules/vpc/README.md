@@ -43,5 +43,6 @@ No modules.
 
 | Name | Description |
 |------|-------------|
+| <a name="output_id"></a> [id](#output\_id) | VPC ID |
 | <a name="output_private_subnet_ids"></a> [private\_subnet\_ids](#output\_private\_subnet\_ids) | List of private subnet IDs |
 <!-- END_TF_DOCS -->

@@ -23,6 +23,10 @@ variable "database_secrets" {
       value       = string
       description = optional(string, "The address of the database.")
     })
+    port = object({
+      value       = optional(string)
+      description = optional(string, "The port of the database.")
+    })
   })
   sensitive = true
 }
