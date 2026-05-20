@@ -134,7 +134,7 @@ Deploys the full application on a local [kind](https://kind.sigs.k8s.io/) cluste
 **Automated (recommended):**
 
 ```bash
-cd k8s/
+cd k8s/local/
 bash startup-cluster.sh
 ```
 
@@ -144,7 +144,7 @@ The script creates the cluster, builds and loads both images, deploys all releas
 
 ```bash
 # Create the cluster
-kind create cluster --config k8s/kind-config.yaml
+kind create cluster --config k8s/local/kind-config.yaml
 
 # Build and load images
 docker build --target runtime -t movie-rating:latest app/
@@ -153,7 +153,7 @@ kind load docker-image movie-rating:latest
 kind load docker-image movie-rating-migrations:latest
 
 # Deploy all releases
-helmfile -f k8s/helmfile.yaml.gotmpl -e local sync
+helmfile -f k8s/local/helmfile.yaml.gotmpl -e local sync
 
 echo "127.0.0.1  movie-rating.local.com" | sudo tee -a /etc/hosts
 curl http://movie-rating.local.com/health
@@ -399,29 +399,33 @@ movie-rating/
 
 ## Kubernetes (local)
 
-The `k8s/` directory contains everything needed to run the application on a local [kind](https://kind.sigs.k8s.io/) cluster using [Helm](https://helm.sh/) and [Helmfile](https://helmfile.readthedocs.io/).
+The `k8s/` directory contains everything needed to run the application on a local [kind](https://kind.sigs.k8s.io/) cluster or on AWS EKS using [Helm](https://helm.sh/) and [Helmfile](https://helmfile.readthedocs.io/).
 
 ```
 k8s/
-├── kind-config.yaml              # kind cluster definition (1 control-plane + 2 workers, ports 80/443 mapped to host)
-├── helmfile.yaml.gotmpl          # Helmfile with all releases (kong, goldilocks, observability stack, movie-rating)
-├── startup-cluster.sh            # Automated script — creates cluster, builds/loads images, deploys, configures /etc/hosts
-├── values/
-│   ├── kong.yaml                 # Values for Kong Ingress Controller
-│   ├── goldilocks.yaml           # Values for Goldilocks (VPA recommendations)
-│   ├── grafana.yaml              # Grafana with datasources (Mimir, Tempo, Loki) and dashboard provisioning
-│   ├── loki.yaml                 # Loki log aggregation
-│   ├── mimir.yaml                # Mimir metrics storage (Prometheus-compatible)
-│   ├── tempo.yaml                # Tempo distributed tracing backend
-│   ├── otel-collector.yaml       # OTel Collector — receives OTLP, exports to Mimir/Tempo/Loki
-│   └── otel-collector-node.yaml  # OTel Collector DaemonSet — scrapes host/node metrics
-└── movie-rating/                 # Application Helm chart
-    ├── Chart.yaml                # Chart metadata; depends on Bitnami PostgreSQL chart 16.7.27 (PostgreSQL 17)
-    ├── values.yaml               # Default values (local mode, image tags, resource requests/limits, ingress host)
+├── local/                            # Local (kind) environment
+│   ├── kind-config.yaml              # kind cluster definition (1 control-plane + 2 workers, ports 80/443 mapped to host)
+│   ├── helmfile.yaml.gotmpl          # Helmfile with all releases (kong, goldilocks, observability stack, movie-rating)
+│   ├── startup-cluster.sh            # Automated script — creates cluster, builds/loads images, deploys, configures /etc/hosts
+│   └── values/
+│       ├── kong.yaml                 # Values for Kong Ingress Controller
+│       ├── goldilocks.yaml           # Values for Goldilocks (VPA recommendations)
+│       ├── grafana.yaml              # Grafana with datasources (Mimir, Tempo, Loki) and dashboard provisioning
+│       ├── loki.yaml                 # Loki log aggregation
+│       ├── mimir.yaml                # Mimir metrics storage (Prometheus-compatible)
+│       ├── tempo.yaml                # Tempo distributed tracing backend
+│       ├── otel-collector.yaml       # OTel Collector — receives OTLP, exports to Mimir/Tempo/Loki
+│       └── otel-collector-node.yaml  # OTel Collector DaemonSet — scrapes host/node metrics
+├── aws/
+│   └── values.yaml                   # Helm values for AWS (ECR image URIs, ALB ingress class)
+└── movie-rating/                     # Application Helm chart
+    ├── Chart.yaml                    # Chart metadata; depends on Bitnami PostgreSQL chart (local only)
+    ├── values.yaml                   # Default values (image refs, resources, secretStore, otlp, ingress)
     └── templates/
-        ├── app.yaml              # Deployment + Service + Ingress
-        ├── migrations.yaml       # pre-upgrade Job that runs Alembic migrations (local only)
-        └── _helpers.tpl          # Template helpers for env var injection
+        ├── app.yaml                  # Deployment + Service + Ingress; Secret (local) or ExternalSecret (AWS)
+        ├── migrations.yaml           # pre-upgrade Job that runs Alembic migrations; Secret (local) or ExternalSecret (AWS)
+        ├── secret-store.yaml         # SecretStore for AWS SSM Parameter Store (AWS only)
+        └── _helpers.tpl              # Named templates for resource names and secret refs
 ```
 
 ### Prerequisites
@@ -433,10 +437,10 @@ k8s/
 
 ### Automated setup
 
-The `k8s/startup-cluster.sh` script handles the entire local setup in one command — it creates the cluster (if not already running), builds and loads both Docker images, deploys all releases via Helmfile, configures `/etc/hosts`, and waits until the application is healthy.
+The `k8s/local/startup-cluster.sh` script handles the entire local setup in one command — it creates the cluster (if not already running), builds and loads both Docker images, deploys all releases via Helmfile, configures `/etc/hosts`, and waits until the application is healthy.
 
 ```bash
-cd k8s/
+cd k8s/local/
 bash startup-cluster.sh
 ```
 
@@ -447,7 +451,7 @@ If you prefer to run the steps manually, follow sections 1–5 below.
 ### 1. Create the kind cluster
 
 ```bash
-kind create cluster --config k8s/kind-config.yaml
+kind create cluster --config k8s/local/kind-config.yaml
 ```
 
 ### 2. Build the Docker images
@@ -476,7 +480,7 @@ kind load docker-image movie-rating-migrations:1.0.0
 ### 4. Deploy with Helmfile
 
 ```bash
-helmfile -f k8s/helmfile.yaml.gotmpl -e local sync
+helmfile -f k8s/local/helmfile.yaml.gotmpl -e local sync
 ```
 
 This installs:
@@ -504,12 +508,68 @@ The API will then be available at `http://movie-rating.local.com/api/v1/`.
 
 | Value | Default | Description |
 |---|---|---|
-| `local.enabled` | `true` | Enables local-only resources (PostgreSQL subchart, migrations Job, env injection) |
-| `app.image.tag` | `1.0.0` | Tag of the `movie-rating` runtime image |
+| `local.enabled` | `true` | Enables local-only resources (PostgreSQL subchart, Kubernetes `Secret`). Set to `false` for AWS. |
+| `app.image.tag` | `movie-rating` | Image repository name (local) or ECR URI (AWS) |
+| `app.image.version` | `1.0.0` | Image tag appended to `app.image.tag` |
+| `app.ingress.enabled` | `true` | Whether to render the Ingress resource |
 | `app.ingress.host` | `movie-rating.local.com` | Ingress hostname |
-| `app.ingress.className` | `kong` | Ingress class (Kong) |
-| `migrations.image.tag` | `1.0.0` | Tag of the `movie-rating-migrations` builder image |
-| `secrets.*` | see `values.yaml` | Database credentials and address injected as environment variables |
+| `app.ingress.className` | `kong` | Ingress class (`kong` locally, `alb` on AWS) |
+| `migrations.image.tag` | `movie-rating-migrations` | Migrations image repository name or ECR URI |
+| `migrations.image.version` | `1.0.0` | Migrations image tag |
+| `otlp.endpoint` | (otel-collector cluster DNS) | OTLP gRPC endpoint injected into the app Secret |
+| `secretStore.name` | `aws-ssm` | Name of the `SecretStore` resource (AWS only) |
+| `secretStore.region` | `us-east-1` | AWS region for SSM Parameter Store (AWS only) |
+
+### AWS deployment
+
+When `local.enabled: false`, the chart targets an AWS EKS cluster and switches from local resources to AWS-managed ones:
+
+- **PostgreSQL** — the Bitnami subchart is disabled; the app connects to an RDS instance provisioned by the Terraform `rds` module
+- **Secrets** — instead of a plain Kubernetes `Secret`, the chart renders an `ExternalSecret` for both the app and the migrations Job. The External Secrets Operator (installed via the `eks_blueprints_addons` Terraform module) syncs credentials from AWS SSM Parameter Store into the cluster
+- **SecretStore** — a `SecretStore` resource is created to point the External Secrets Operator at the correct SSM path and region. The `secretStore.name` and `secretStore.region` values are required when `local.enabled: false`
+- **Ingress** — `app.ingress.className` should be set to `alb`; the chart adds the ALB-specific annotations (`target-type: ip`, `scheme: internet-facing`, `healthcheck-path: /health`) automatically
+
+#### 1. Build and push images to ECR
+
+> **Note:** CI/CD automation for image builds and pushes is a work in progress. For now, build and push manually.
+
+Build each image using the correct `--target` and push to your ECR repository. Follow the [AWS ECR push image guide](https://docs.aws.amazon.com/AmazonECR/latest/userguide/docker-push-ecr-image.html) for authentication and push steps — the only difference per image is the `--target` flag:
+
+```bash
+# Runtime image — used by the API Deployment
+docker build --target runtime -t <ecr-uri>:latest app/
+
+# Migrations image — used by the migrations Job
+docker build --target migrations -t <ecr-uri>:migrations-latest app/
+```
+
+#### 2. Set required values
+
+The following values in `k8s/aws/values.yaml` are `null` by default and **must** be provided before deploying:
+
+| Value | Description |
+|---|---|
+| `app.image.tag` | Full ECR URI for the runtime image (e.g. `123456789.dkr.ecr.us-east-1.amazonaws.com/movie-rating`) |
+| `app.image.version` | Image tag to deploy (e.g. `latest`) |
+| `migrations.image.tag` | Full ECR URI for the migrations image (same repo, same URI) |
+| `migrations.image.version` | Migrations image tag (e.g. `migrations-latest`) |
+| `secretStore.name` | Name of the `SecretStore` resource (must match what External Secrets Operator expects) |
+| `secretStore.region` | AWS region where SSM parameters are stored |
+
+#### 3. Deploy
+
+```bash
+helm upgrade --install \
+  --namespace movie-rating --create-namespace \
+  movie-rating k8s/movie-rating/ \
+  -f k8s/aws/values.yaml \
+  --set app.image.tag=<ecr-uri> \
+  --set app.image.version=latest \
+  --set migrations.image.tag=<ecr-uri> \
+  --set migrations.image.version=migrations-latest \
+  --set secretStore.name=aws-ssm \
+  --set secretStore.region=us-east-1
+```
 
 ---
 
@@ -517,18 +577,19 @@ The API will then be available at `http://movie-rating.local.com/api/v1/`.
 
 The `terraform/` directory contains a modular Terraform configuration that provisions the full AWS infrastructure needed to run the application in production.
 
-```
+```text
 terraform/
-├── main.tf           # Root module — wires VPC, ECR, RDS, SSM, and EKS together
+├── main.tf           # Root module — wires VPC, ECR, RDS, SSM, EKS, and EKS add-ons together
+├── providers.tf      # AWS and Helm provider configurations
+├── versions.tf       # Terraform version and required_providers block
 ├── variables.tf      # Input variables (region, project name, DB config, EKS version, etc.)
-├── outputs.tf        # Root outputs
 ├── terraform.tfvars  # Variable values (not committed — add to .gitignore)
 └── modules/
     ├── vpc/          # VPC with public/private subnets, IGW, NAT gateway, route tables
     ├── ecr/          # ECR repository for Docker images
-    ├── rds/          # RDS PostgreSQL instance in private subnets with subnet group
-    ├── ssm/          # SSM Parameter Store — stores DB credentials (name, user, password, endpoint)
-    └── eks/          # EKS cluster + managed node group with IAM roles
+    ├── rds/          # RDS PostgreSQL + security group allowing EKS cluster access
+    ├── ssm/          # SSM Parameter Store — DB credentials (database.tf) and JWT secret (jwt.tf)
+    └── eks/          # EKS cluster + managed node group + OIDC provider for IRSA
 ```
 
 ### Module overview
@@ -537,9 +598,10 @@ terraform/
 |---|---|
 | `vpc` | VPC, public/private subnets across AZs, IGW, NAT gateway, route tables |
 | `ecr` | ECR repository for `movie-rating` images |
-| `rds` | RDS PostgreSQL instance (private subnets, configurable class/storage/multi-AZ) |
-| `ssm` | SSM parameters for DB name, username, password, and endpoint (sourced from RDS outputs) |
-| `eks` | EKS cluster + managed node group with dedicated IAM roles |
+| `rds` | RDS PostgreSQL instance (private subnets, security group restricted to EKS cluster nodes) |
+| `ssm` | SSM SecureString parameters for DB credentials + auto-generated JWT secret (`random_password`) |
+| `eks` | EKS cluster + managed node group + OIDC provider (enables IRSA for add-ons) |
+| `eks_blueprints_addons` | AWS Load Balancer Controller, Cluster Autoscaler, Metrics Server, External Secrets Operator |
 
 ### Usage
 

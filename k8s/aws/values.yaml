@@ -3,8 +3,8 @@ local:
 
 app:
   image:
-    tag: 864981720117.dkr.ecr.us-east-1.amazonaws.com/movie-rating
-    version: latest
+    tag: null
+    version: null
   resources:
     requests:
       cpu: 15m
@@ -20,8 +20,8 @@ app:
 
 migrations:
   image:
-    tag: 864981720117.dkr.ecr.us-east-1.amazonaws.com/movie-rating
-    version: migrations-latest
+    tag: null
+    version: null
   resources:
     requests:
       cpu: 50m
@@ -33,5 +33,5 @@ migrations:
       ephemeral-storage: 2Gi
 
 secretStore:
-  name: aws-ssm
-  region: us-east-1
+  name: null
+  region: null

@@ -8,17 +8,17 @@ postgresql:
   image:
     repository: bitnamilegacy/postgresql
   auth:
-    username: movie-rating
-    password: movie-rating-password
-    database: movie-rating
+    username: movie-rating # Override the default username if you want to use a different one
+    password: movie-rating-password # Override the default password if you want to use a different one
+    database: movie-rating # Override the default database name if you want to use a different one
   primary:
     networkPolicy:
       enabled: false
 
 app:
   image:
-    tag: movie-rating
-    version: "1.0.0"
+    tag: movie-rating # Override the default image tag if you want to use a different one
+    version: latest # Override the default image version if you want to use a different one
   resources:
     requests:
       cpu: 15m # Goldilocks recommendation for 1 replica: 15m
@@ -36,7 +36,7 @@ app:
 migrations:
   image:
     tag: movie-rating-migrations
-    version: "1.0.0"
+    version: latest
   resources:
     requests:
       cpu: 50m
@@ -48,5 +48,5 @@ migrations:
       ephemeral-storage: 2Gi
 
 secretStore:
-  name: aws-ssm
-  region: us-east-1
+  name: null # Required when local.enabled is false — name of the SecretStore resource
+  region: null # Required when local.enabled is false — AWS region for SSM Parameter Store
