@@ -1,21 +1,15 @@
 local:
   enabled: true
 
-secrets:
-  jwtSecretKey: jwt-secret-key #checkov:skip=CKV_SECRET_6
-  dbUser: movie-rating
-  dbPassword: movie-rating-password #checkov:skip=CKV_SECRET_6
-  dbDatabase: movie-rating
-  dbAddress: movie-rating-postgresql
-  dbPort: 5432
-  otlpEndpoint: http://otel-collector.observability.svc.cluster.local:4317
+otlp:
+  endpoint: http://otel-collector.observability.svc.cluster.local:4317
 
 postgresql:
   image:
     repository: bitnamilegacy/postgresql
   auth:
     username: movie-rating
-    password: movie-rating-password #checkov:skip=CKV_SECRET_6
+    password: movie-rating-password
     database: movie-rating
   primary:
     networkPolicy:
@@ -23,15 +17,16 @@ postgresql:
 
 app:
   image:
-    tag: "1.0.0"
+    tag: movie-rating
+    version: "1.0.0"
   resources:
     requests:
-      cpu: 15m
-      memory: 225M
+      cpu: 15m # Goldilocks recommendation for 1 replica: 15m
+      memory: 225M # Goldilocks recommendation for 1 replica: 15m
       ephemeral-storage: 128Mi
     limits:
-      cpu: 29m
-      memory: 598M
+      cpu: 29m # Goldilocks recommendation for 1 replica: 15m
+      memory: 598M # Goldilocks recommendation for 1 replica: 15m
       ephemeral-storage: 256Mi
   ingress:
     enabled: true
@@ -40,13 +35,18 @@ app:
 
 migrations:
   image:
-    tag: "1.0.0"
+    tag: movie-rating-migrations
+    version: "1.0.0"
   resources:
     requests:
-      cpu: 15m
-      memory: 225M
-      ephemeral-storage: 128Mi
-    limits:
-      cpu: 29m
-      memory: 598M
+      cpu: 50m
+      memory: 64Mi
       ephemeral-storage: 2Gi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+      ephemeral-storage: 2Gi
+
+secretStore:
+  name: aws-ssm
+  region: us-east-1

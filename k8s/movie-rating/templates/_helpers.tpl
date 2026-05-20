@@ -1,17 +1,15 @@
-{{- define "movie-rating.app.env" -}}
-{{- range $name, $value := .Values.secrets }}
-{{- $name := regexReplaceAll "([a-z])([A-Z])" $name "${1}_${2}" | upper }}
-- name: {{ $name }}
-  value: {{ $value | quote }}
-{{- end -}}
-{{- end -}}
-
-{{- define "movie-rating.migrations.env" -}}
-{{- range $name, $value := .Values.secrets }}
-{{- if ne $name "jwtSecretKey" }}
-{{- $name := regexReplaceAll "([a-z])([A-Z])" $name "${1}_${2}" | upper }}
-- name: {{ $name }}
-  value: {{ $value | quote }}
+{{- define "movie-rating.app.secret-name" -}}
+{{ .Chart.Name }}-secrets
 {{- end }}
-{{- end -}}
-{{- end -}}
+
+{{- define "movie-rating.local.db-address" -}}
+{{ .Release.Name }}-postgresql
+{{- end }}
+
+{{- define "movie-rating.app.name" -}}
+{{ .Chart.Name }}-api
+{{- end }}
+
+{{- define "movie-rating.migration.secret-name" -}}
+{{ .Chart.Name }}-migration-secrets
+{{- end }}
