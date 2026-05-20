@@ -1,0 +1,37 @@
+local:
+  enabled: false
+
+app:
+  image:
+    tag: 864981720117.dkr.ecr.us-east-1.amazonaws.com/movie-rating
+    version: latest
+  resources:
+    requests:
+      cpu: 15m
+      memory: 225M
+      ephemeral-storage: 128Mi
+    limits:
+      cpu: 29m
+      memory: 598M
+      ephemeral-storage: 256Mi
+  ingress:
+    enabled: true
+    className: alb
+
+migrations:
+  image:
+    tag: 864981720117.dkr.ecr.us-east-1.amazonaws.com/movie-rating
+    version: migrations-latest
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+      ephemeral-storage: 2Gi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+      ephemeral-storage: 2Gi
+
+secretStore:
+  name: aws-ssm
+  region: us-east-1

@@ -2,7 +2,8 @@
 
 CLUSTER_NAME="kind"
 TAG_VERSION="latest"
-IMAGE_TAG_PREFIX="movie-rating"
+APP_IMAGE_TAG_PREFIX="movie-rating"
+MIGRATIONS_IMAGE_TAG_PREFIX="movie-rating-migrations"
 HOST_DOMAIN="movie-rating.local.com"
 
 # Create a Kubernetes cluster using kind
@@ -12,12 +13,12 @@ else
     kind create cluster --name "${CLUSTER_NAME}" --config kind-config.yaml
 fi
 
-docker build -t ${IMAGE_TAG_PREFIX}:${TAG_VERSION} ../app --target runtime
-docker build -t ${IMAGE_TAG_PREFIX}-migrations:${TAG_VERSION} ../app --target migrations
+docker build -t ${APP_IMAGE_TAG_PREFIX}:${TAG_VERSION} ../../app --target runtime
+docker build -t ${MIGRATIONS_IMAGE_TAG_PREFIX}:${TAG_VERSION} ../../app --target migrations
 
 # Load the Docker images into the kind cluster
-kind load docker-image ${IMAGE_TAG_PREFIX}:${TAG_VERSION} --name "${CLUSTER_NAME}"
-kind load docker-image ${IMAGE_TAG_PREFIX}-migrations:${TAG_VERSION} --name "${CLUSTER_NAME}"
+kind load docker-image ${APP_IMAGE_TAG_PREFIX}:${TAG_VERSION} --name "${CLUSTER_NAME}"
+kind load docker-image ${MIGRATIONS_IMAGE_TAG_PREFIX}:${TAG_VERSION} --name "${CLUSTER_NAME}"
 
 # Apply infrastructure and observability releases (no app-specific overrides)
 if ! helmfile apply -e local -l name!=movie-rating; then
@@ -27,8 +28,10 @@ fi
 
 # Apply movie-rating with image tag and ingress overrides
 if ! helmfile apply -e local -l name=movie-rating \
-    --set app.image.tag="${TAG_VERSION}" \
-    --set migrations.image.tag="${TAG_VERSION}" \
+    --set app.image.tag="${APP_IMAGE_TAG_PREFIX}" \
+    --set app.image.version="${TAG_VERSION}" \
+    --set migrations.image.tag="${MIGRATIONS_IMAGE_TAG_PREFIX}" \
+    --set migrations.image.version="${TAG_VERSION}" \
     --set app.ingress.host="${HOST_DOMAIN}"; then
     echo "Failed to apply movie-rating release. Exiting."
     exit 1
