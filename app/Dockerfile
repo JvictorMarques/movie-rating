@@ -18,7 +18,7 @@ COPY . .
 
 FROM python:3.13.13-alpine3.23 AS runtime
 
-ARG CURL_VERSION=8.17.0-r1
+ARG CURL_VERSION=8.19.0-r0
 ARG USER=app
 
 RUN apk add --no-cache curl=${CURL_VERSION} \
