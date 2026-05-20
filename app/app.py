@@ -13,6 +13,14 @@ app = FastAPI()
 settings = Settings()
 logger = logging.getLogger(__name__)
 
+_fmt = '%(asctime)s - %(name)s - %(process)d - %(levelname)s - %(message)s'
+logging.basicConfig(
+    level=logging.DEBUG
+    if settings.ENVIRONMENT == 'development'
+    else logging.INFO,
+    format=_fmt,
+)
+
 if settings.OTLP_ENDPOINT:
     setup_telemetry(app, engine)
 

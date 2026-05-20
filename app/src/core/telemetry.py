@@ -110,19 +110,7 @@ def setup_telemetry(app: FastAPI, engine: AsyncEngine) -> None:
         level=logging.INFO, logger_provider=logger_provider
     )
 
-    _fmt = '%(asctime)s - %(name)s - %(process)d - %(levelname)s - %(message)s'
-    if settings.ENVIRONMENT == 'development':
-        logging.basicConfig(
-            level=logging.DEBUG,
-            format=_fmt,
-            handlers=[otel_handler],
-        )
-    else:
-        logging.basicConfig(
-            level=logging.INFO,
-            format=_fmt,
-            handlers=[otel_handler],
-        )
+    logging.getLogger().addHandler(otel_handler)
 
     FastAPIInstrumentor.instrument_app(app)
     SQLAlchemyInstrumentor().instrument(engine=engine.sync_engine)
