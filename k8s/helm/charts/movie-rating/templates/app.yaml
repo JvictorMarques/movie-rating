@@ -90,7 +90,8 @@ kind: Service
 metadata:
   name: {{ include "movie-rating.app.name" . }}
   namespace: {{ .Release.Namespace }}
-  argocd.argoproj.io/sync-wave: "2"
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   selector:
     app: {{ include "movie-rating.app.name" . }}
