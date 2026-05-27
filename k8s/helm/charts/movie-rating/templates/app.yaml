@@ -52,6 +52,9 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     app: {{ .Chart.Name }}
+    {{ if .Values.local.enabled -}}
+    goldilocks.fairwinds.com/enabled: true
+    {{- end }}
 spec:
   selector:
     matchLabels:
