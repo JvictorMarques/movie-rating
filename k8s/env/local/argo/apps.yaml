@@ -1,0 +1,90 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: movie_rating
+  namespace: argocd
+spec:
+  generators:
+  - list:
+      elements:
+        - name: argocd
+          namespace: argocd
+          wave: "0"
+          repository: https://argoproj.github.io/argo-helm
+          chart: argo-cd
+          version: 9.5.15
+        - name: kong
+          namespace: kong
+          wave: "0"
+          repository: https://charts.konghq.com
+          chart: ingress
+          version: 0.21.0
+        - name: goldilocks
+          namespace: goldilocks
+          wave: "0"
+          repository: https://charts.fairwinds.com/stable
+          chart: goldilocks
+          version: 10.3.0
+        - name: mimir
+          namespace: observability
+          wave: "0"
+          repository: https://grafana.github.io/helm-charts
+          chart: mimir-distributed
+          version: 6.0.6
+        - name: tempo
+          namespace: observability
+          wave: "0"
+          repository: https://grafana.github.io/helm-charts
+          chart: tempo
+          version: 2.2.0
+        - name: loki
+          namespace: observability
+          wave: "0"
+          repository: https://grafana.github.io/helm-charts
+          chart: loki
+          version: 7.0.0
+        - name: grafana
+          namespace: observability
+          wave: "1"
+          repository: https://grafana.github.io/helm-charts
+          chart: grafana
+          version: 12.1.8
+        - name: otel-collector
+          namespace: observability
+          wave: "1"
+          repository: https://open-telemetry.github.io/opentelemetry-helm-charts
+          chart: opentelemetry-collector
+          version: 0.156.2
+        - name: otel-collector-node
+          namespace: observability
+          wave: "1"
+          repository: https://open-telemetry.github.io/opentelemetry-helm-charts
+          chart: opentelemetry-collector
+          version: 0.156.2
+  template:
+    metadata:
+      name: "{{name}}"
+      annotations:
+        argocd.argoproj.io/sync-wave: "{{wave}}"
+    spec:
+      project: default
+      sources:
+        - repoURL: "{{repository}}"
+          chart: "{{chart}}"
+          targetRevision: "{{version}}"
+          helm:
+            releaseName: "{{name}}"
+            valueFiles:
+              - $values/k8s/env/local/values/{{name}}.yaml
+        - repoURL: https://github.com/JvictorMarques/movie_rating
+          targetRevision: HEAD
+          ref: values
+      destination:
+        namespace: "{{namespace}}"
+        server: https://kubernetes.default.svc
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
