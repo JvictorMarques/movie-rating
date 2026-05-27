@@ -52,9 +52,8 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     app: {{ .Chart.Name }}
-    {{ if .Values.local.enabled -}}
-    goldilocks.fairwinds.com/enabled: true
-    {{- end }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   selector:
     matchLabels:
@@ -91,6 +90,7 @@ kind: Service
 metadata:
   name: {{ include "movie-rating.app.name" . }}
   namespace: {{ .Release.Namespace }}
+  argocd.argoproj.io/sync-wave: "2"
 spec:
   selector:
     app: {{ include "movie-rating.app.name" . }}
@@ -104,8 +104,9 @@ kind: Ingress
 metadata:
   name: {{ include "movie-rating.app.name" . }}
   namespace: {{ .Release.Namespace }}
-  {{- if eq .Values.app.ingress.className "alb" }}
   annotations:
+    argocd.argoproj.io/sync-wave: "2"
+  {{- if eq .Values.app.ingress.className "alb" }}
     alb.ingress.kubernetes.io/target-type: ip
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/healthcheck-path: /health
