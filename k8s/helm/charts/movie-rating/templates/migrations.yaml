@@ -17,6 +17,8 @@ kind: ExternalSecret
 metadata:
   name: {{ .Chart.Name }}-migrations-external-secret
   namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
 spec:
   secretStoreRef:
     name: {{ include "movie-rating.secret-store.name" . }}

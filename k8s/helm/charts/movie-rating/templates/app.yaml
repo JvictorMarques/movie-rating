@@ -18,6 +18,8 @@ kind: ExternalSecret
 metadata:
   name: {{ .Chart.Name }}-app-external-secret
   namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   secretStoreRef:
     name: {{ include "movie-rating.secret-store.name" . }}
