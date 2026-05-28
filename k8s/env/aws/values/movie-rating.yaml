@@ -17,6 +17,7 @@ app:
   ingress:
     enabled: true
     className: alb
+    host: {}
 
 migrations:
   image:
