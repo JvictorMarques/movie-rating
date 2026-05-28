@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: main
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/JvictorMarques/movie_rating
+      targetRevision: HEAD
+      path: k8s/env/aws/argo
+  destination:
+    namespace: argocd
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

@@ -1,0 +1,6 @@
+clusterName: null
+region: null
+vpcId: null
+
+serviceAccount:
+  name: aws-load-balancer-controller

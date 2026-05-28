@@ -1,0 +1,64 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: addons
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:
+          - name: argocd
+            namespace: argocd
+            chart: argo-cd
+            repository: https://argoproj.github.io/argo-helm
+            version: 9.5.15
+
+          - name: aws-load-balancer-controller
+            namespace: kube-system
+            repository: https://aws.github.io/eks-charts
+            chart: aws-load-balancer-controller
+            version: "3.3.0"
+
+          - name: cluster-autoscaler
+            namespace: kube-system
+            chart: cluster-autoscaler
+            repository: https://kubernetes.github.io/autoscaler
+            version: "9.57.0"
+
+          - name: external-secrets
+            namespace: kube-system
+            chart: external-secrets
+            repository: https://charts.external-secrets.io
+            version: "2.5.0"
+
+          - name: metrics-server
+            namespace: kube-system
+            chart: metrics-server
+            repository: https://kubernetes-sigs.github.io/metrics-server/
+            version: "3.13.0"
+
+  template:
+    metadata:
+      name: "{{name}}"
+    spec:
+      project: default
+      sources:
+      - repoURL: "{{repository}}"
+        version: "{{version}}"
+        chart: "{{chart}}"
+        helm:
+          releaseName: "{{name}}"
+          valueFiles:
+            - "$values/k8s/env/aws/values/{{name}}.yaml"
+      - repoURL: https://github.com/JvictorMarques/movie_rating
+        version: HEAD
+        ref: values
+      destination:
+        namespace: "{{namespace}}"
+        server: https://kubernetes.default.svc
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true

@@ -1,0 +1,8 @@
+autoDiscovery:
+  clusterName: null
+
+awsRegion: null
+
+rbac:
+  serviceAccount:
+    name: cluster-autoscaler
