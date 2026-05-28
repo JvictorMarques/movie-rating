@@ -26,9 +26,6 @@ spec:
     kind: SecretStore
   target:
     name: {{ include "movie-rating.app.secret-name" . }}
-    template:
-      data:
-        ENVIRONMENT: production
   data:
     - secretKey: DB_ADDRESS
       remoteRef:
@@ -77,6 +74,11 @@ spec:
         envFrom:
         - secretRef:
             name: {{ include "movie-rating.app.secret-name" . }}
+        {{- if not .Values.local.enabled }}
+        env:
+        - name: ENVIRONMENT
+          value: production
+        {{- end }}
         resources:
           requests:
             cpu: {{ .Values.app.resources.requests.cpu }}
