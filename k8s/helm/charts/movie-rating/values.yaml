@@ -48,5 +48,4 @@ migrations:
       ephemeral-storage: 2Gi
 
 secretStore:
-  name: null # Required when local.enabled is false — name of the SecretStore resource
   region: null # Required when local.enabled is false — AWS region for SSM Parameter Store

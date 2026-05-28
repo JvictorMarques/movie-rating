@@ -13,3 +13,7 @@
 {{- define "movie-rating.migration.secret-name" -}}
 {{ .Chart.Name }}-migration-secrets
 {{- end }}
+
+{{- define "movie-rating.secret-store.name" -}}
+{{ .Release.Name }}-secret-store
+{{- end }}

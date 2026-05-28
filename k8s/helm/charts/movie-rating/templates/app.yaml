@@ -20,7 +20,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   secretStoreRef:
-    name: {{ .Values.secretStore.name }}
+    name: {{ include "movie-rating.secret-store.name" . }}
     kind: SecretStore
   target:
     name: {{ include "movie-rating.app.secret-name" . }}
