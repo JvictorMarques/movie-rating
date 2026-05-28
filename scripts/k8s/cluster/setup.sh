@@ -12,6 +12,7 @@ Options:
 
 VERSION="1.0.0"
 CLUSTER_NAME="movie-rating"
+APPLICATION_NAMESPACE="movie-rating"
 
 TAG_VERSION="latest"
 APP_IMAGE_TAG_PREFIX="movie-rating"
@@ -92,7 +93,7 @@ function wait_for_application() {
 }
 
 function label_namespace() {
-    kubectl label ns goldilocks goldilocks.fairwinds.com/enabled=true
+    kubectl label ns "$APPLICATION_NAMESPACE" goldilocks.fairwinds.com/enabled=true
 }
 
 while [[ $# -gt 0 ]]; do
