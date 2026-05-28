@@ -1,5 +1,5 @@
 clusterName: movie-rating-cluster
-region: us-west-2
+region: us-east-1
 vpcId: vpc-0d120b3e227f9c967
 
 serviceAccount:
