@@ -8,10 +8,10 @@ Options:
     -v Show the version of the script
     --create-cluster Create the Kubernetes cluster and deploy the application
     --delete-cluster Delete the Kubernetes cluster
-    --cluster-name <name> Specify a custom name for the Kubernetes cluster (default: kind)
 "
+
 VERSION="1.0.0"
-CLUSTER_NAME="kind"
+CLUSTER_NAME="movie-rating"
 
 TAG_VERSION="latest"
 APP_IMAGE_TAG_PREFIX="movie-rating"
@@ -110,10 +110,6 @@ while [[ $# -gt 0 ]]; do
             ;;
         --delete-cluster)
             DELETE_CLUSTER=true
-            ;;
-        --cluster-name)
-            CLUSTER_NAME="$2"
-            shift
             ;;
         *)
             echo "Unknown option: $1"
