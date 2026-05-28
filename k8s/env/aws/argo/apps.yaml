@@ -51,7 +51,7 @@ spec:
           valueFiles:
             - "$values/k8s/env/aws/values/{{name}}.yaml"
       - repoURL: https://github.com/JvictorMarques/movie_rating
-        version: HEAD
+        targetRevision: HEAD
         ref: values
       destination:
         namespace: "{{namespace}}"
