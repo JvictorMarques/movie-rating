@@ -12,7 +12,7 @@ stringData:
   DB_DATABASE: {{ .Values.postgresql.auth.database }}
   DB_ADDRESS: {{ include "movie-rating.local.db-address" . }}
 {{- else }}
-apiVersion: external-secrets.io/v1beta1
+apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:
   name: {{ .Chart.Name }}-migrations-external-secret

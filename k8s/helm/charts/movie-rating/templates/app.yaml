@@ -13,7 +13,7 @@ stringData:
   DB_ADDRESS: {{ include "movie-rating.local.db-address" . }}
   OTLP_ENDPOINT: {{ .Values.otlp.endpoint }}
 {{- else }}
-apiVersion: external-secrets.io/v1beta1
+apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:
   name: {{ .Chart.Name }}-app-external-secret
