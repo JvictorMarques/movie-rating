@@ -1,7 +1,7 @@
 autoDiscovery:
-  clusterName: null
+  clusterName: movie-rating-cluster
 
-awsRegion: null
+awsRegion: us-east-1
 
 rbac:
   serviceAccount:

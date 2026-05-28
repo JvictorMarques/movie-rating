@@ -44,7 +44,7 @@ spec:
       project: default
       sources:
       - repoURL: "{{repository}}"
-        version: "{{version}}"
+        targetRevision: "{{version}}"
         chart: "{{chart}}"
         helm:
           releaseName: "{{name}}"
