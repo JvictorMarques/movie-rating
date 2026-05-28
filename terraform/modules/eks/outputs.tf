@@ -10,14 +10,6 @@ output "cluster_version" {
   value = aws_eks_cluster.this.version
 }
 
-output "cluster_certificate_authority" {
-  value = aws_eks_cluster.this.certificate_authority[0].data
-}
-
-output "oidc_provider_arn" {
-  value = aws_iam_openid_connect_provider.this.arn
-}
-
 output "cluster_security_group_id" {
   value = aws_eks_cluster.this.vpc_config[0].cluster_security_group_id
 }
