@@ -11,7 +11,7 @@ app:
       memory: 225M
       ephemeral-storage: 128Mi
     limits:
-      cpu: 29m
+      cpu: 200m
       memory: 598M
       ephemeral-storage: 256Mi
   ingress:
