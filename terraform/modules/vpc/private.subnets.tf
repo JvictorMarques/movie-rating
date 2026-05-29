@@ -8,7 +8,8 @@ resource "aws_subnet" "private" {
   map_public_ip_on_launch = false
 
   tags = {
-    Name                              = "${var.project_name}-private-${substr(local.subnets_azs[count.index], -2, 2)}"
-    "kubernetes.io/role/internal-elb" = "1"
+    Name                                        = "${var.project_name}-private-${substr(local.subnets_azs[count.index], -2, 2)}"
+    "kubernetes.io/role/internal-elb"           = "1"
+    "kubernetes.io/cluster/${var.cluster_name}" = "shared"
   }
 }

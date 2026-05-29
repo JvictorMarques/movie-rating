@@ -36,6 +36,7 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_cluster_name"></a> [cluster\_name](#input\_cluster\_name) | EKS cluster name used to tag subnets for Load Balancer Controller auto-discovery | `string` | n/a | yes |
 | <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Name of the project | `string` | n/a | yes |
 | <a name="input_subnets_azs"></a> [subnets\_azs](#input\_subnets\_azs) | List of availability zones to use for subnets | `set(string)` | n/a | yes |
 

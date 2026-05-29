@@ -3,6 +3,11 @@ variable "project_name" {
   type        = string
 }
 
+variable "cluster_name" {
+  description = "EKS cluster name used to tag subnets for Load Balancer Controller auto-discovery"
+  type        = string
+}
+
 variable "subnets_azs" {
   description = "List of availability zones to use for subnets"
   type        = set(string)
