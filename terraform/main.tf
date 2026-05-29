@@ -1,6 +1,7 @@
 module "vpc" {
   source       = "./modules/vpc"
   project_name = var.project_name
+  cluster_name = "${var.project_name}-cluster"
   subnets_azs  = var.subnets_azs
 }
 
@@ -25,7 +26,7 @@ module "rds" {
 
   multi_az = var.multi_az
 
-  eks_cluster_security_group_id = module.eks.cluster_security_group_id
+  eks_cluster_security_group_id = module.eks_cluster.cluster_security_group_id
 }
 
 module "ssm" {
@@ -50,7 +51,7 @@ module "ssm" {
   }
 }
 
-module "eks" {
+module "eks_cluster" {
   source             = "./modules/eks"
   project_name       = var.project_name
   kubernetes_version = var.eks_version
@@ -58,7 +59,22 @@ module "eks" {
 }
 
 module "eks_pod_identities" {
-  source       = "./modules/eks-pod-identities"
+  source       = "./modules/eks-pod-identity-roles"
   project_name = var.project_name
-  cluster_name = module.eks.cluster_name
+  cluster_name = module.eks_cluster.cluster_name
+}
+
+module "addons" {
+  source                                            = "./modules/eks-helm-releases"
+  cluster_name                                      = module.eks_cluster.cluster_name
+  region                                            = var.aws_region
+  vpc_id                                            = module.vpc.id
+  aws_load_balancer_controller_service_account_name = module.eks_pod_identities.aws_load_balancer_controller_service_account_name
+  cluster_autoscaler_service_account_name           = module.eks_pod_identities.cluster_autoscaler_service_account_name
+  external_secrets_service_account_name             = module.eks_pod_identities.external_secrets_service_account_name
+
+  depends_on = [
+    module.eks_cluster,
+    module.eks_pod_identities
+  ]
 }

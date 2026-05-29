@@ -6,27 +6,33 @@
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.15.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 6.45.0 |
-| <a name="requirement_helm"></a> [helm](#requirement\_helm) | ~> 2.17 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | 6.47.0 |
+| <a name="requirement_helm"></a> [helm](#requirement\_helm) | 3.1.2 |
 
 ## Providers
 
-No providers.
+| Name | Version |
+|------|---------|
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.47.0 |
 
 ## Modules
 
 | Name | Source | Version |
 |------|--------|---------|
+| <a name="module_addons"></a> [addons](#module\_addons) | ./modules/eks-helm-releases | n/a |
 | <a name="module_ecr"></a> [ecr](#module\_ecr) | ./modules/ecr | n/a |
-| <a name="module_eks"></a> [eks](#module\_eks) | ./modules/eks | n/a |
-| <a name="module_eks_pod_identities"></a> [eks\_pod\_identities](#module\_eks\_pod\_identities) | ./modules/eks-pod-identities | n/a |
+| <a name="module_eks_cluster"></a> [eks\_cluster](#module\_eks\_cluster) | ./modules/eks | n/a |
+| <a name="module_eks_pod_identities"></a> [eks\_pod\_identities](#module\_eks\_pod\_identities) | ./modules/eks-pod-identity-roles | n/a |
 | <a name="module_rds"></a> [rds](#module\_rds) | ./modules/rds | n/a |
 | <a name="module_ssm"></a> [ssm](#module\_ssm) | ./modules/ssm | n/a |
 | <a name="module_vpc"></a> [vpc](#module\_vpc) | ./modules/vpc | n/a |
 
 ## Resources
 
-No resources.
+| Name | Type |
+|------|------|
+| [aws_eks_cluster.this](https://registry.terraform.io/providers/hashicorp/aws/6.47.0/docs/data-sources/eks_cluster) | data source |
+| [aws_eks_cluster_auth.this](https://registry.terraform.io/providers/hashicorp/aws/6.47.0/docs/data-sources/eks_cluster_auth) | data source |
 
 ## Inputs
 
