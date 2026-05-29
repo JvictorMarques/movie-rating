@@ -1,0 +1,6 @@
+clusterName: movie-rating-cluster
+region: us-east-1
+vpcId: vpc-0c6775b8e16d74e1b
+
+serviceAccount:
+  name: aws-load-balancer-controller
