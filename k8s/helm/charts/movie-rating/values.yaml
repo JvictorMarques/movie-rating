@@ -25,7 +25,7 @@ app:
       memory: 225M # Goldilocks recommendation for 1 replica: 15m
       ephemeral-storage: 128Mi
     limits:
-      cpu: 200m # Goldilocks recommendation for 1 replica: 15m
+      cpu: 400m # Goldilocks recommendation for 1 replica: 15m
       memory: 598M # Goldilocks recommendation for 1 replica: 15m
       ephemeral-storage: 256Mi
   ingress:
@@ -43,7 +43,7 @@ migrations:
       memory: 64Mi
       ephemeral-storage: 2Gi
     limits:
-      cpu: 200m
+      cpu: 400m
       memory: 128Mi
       ephemeral-storage: 2Gi
 
