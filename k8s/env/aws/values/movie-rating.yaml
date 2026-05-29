@@ -26,11 +26,11 @@ migrations:
   resources:
     requests:
       cpu: 1000m
-      memory: 512Mi
+      memory: 1Gi
       ephemeral-storage: 2Gi
     limits:
       cpu: 1000m
-      memory: 512Mi
+      memory: 1Gi
       ephemeral-storage: 2Gi
 
 secretStore:
