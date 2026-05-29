@@ -1,3 +1,54 @@
+## v1.5.0 (2026-05-29)
+
+### Feat
+
+- add EKS pod identity agent addon configuration
+- add movie-rating Helm chart and configuration files for ArgoCD deployment
+- add movie-rating configuration file and enable ServerSideApply in ArgoCD
+- **argo**: add ArgoCD for AWS ApplicationSet and associated values for multiple applications
+- **terraform**: replace eks_blueprints_addons with eks_pod_identities module
+- **eks-pod-identities**: add IAM role bindings for cluster addons
+- **eks-pod-identities**: add module variables and trust policy template
+- **scripts**: add new setup script for managing Kubernetes cluster lifecycle
+- **k8s**: add ArgoCD application for movie-rating
+- **k8s**: add Argo CD app-of-apps for local environment
+- **k8s**: add ExternalSecret and SecretStore for AWS secrets management
+
+### Fix
+
+- revert CPU limit for app resources to 200m
+- **k8s**: move ENVIRONMENT var out of ExternalSecret template
+- update CPU limit for app resources to 1000m
+- add sync-wave annotations for ExternalSecrets and SecretStore
+- update CPU limit for app resources
+- update CPU limit for app resources in movie-rating configuration
+- ensure host configuration is included in app ingress settings
+- update Ingress rules to conditionally include host configuration
+- update apiVersion for ExternalSecret from v1beta1 to v1 in app and migrations templates
+- update region from us-west-2 to us-east-1 in aws-load-balancer-controller configuration
+- disable autoscaling and set replicas for redis-ha, server, and repoServer in ArgoCD configuration
+- update field name from version to targetRevision in ArgoCD application set
+- update application source configuration and set default values for AWS resources
+- **setup**: add APPLICATION_NAMESPACE variable for consistency in labeling
+- **scripts**: update default cluster name in setup script to 'movie-rating'
+- **k8s**: wrap annotations in Service metadata for proper formatting
+- **k8s**: update annotations for ArgoCD sync-wave and hook policies in app and migrations templates
+- **k8s**: update boostrap prune error and update mismatching chart versions
+- **k8s**: update grafana chart version in apps.yaml and add additional worker node in kind-config.yaml
+- **k8s**: correct application name in Argo CD configuration
+- **k8s**: correct syntax for include in Argo CD app-of-apps configuration
+- **app**: decouple logging setup from telemetry
+
+### Refactor
+
+- **scripts**: move app scripts from app/scripts/ to scripts/app/
+- **eks**: remove OIDC provider and cleanup module
+- **k8s**: reorganize env configs under k8s/env/
+- **k8s**: move Helm chart from k8s/movie-rating/ to k8s/helm/charts/
+- **terraform**: extract providers/versions and wire EKS add-ons
+- **k8s**: update Helm helpers and values for AWS-compatible image refs
+- **k8s**: reorganize local and AWS configs into dedicated subdirectories
+
 ## v1.4.0 (2026-05-18)
 
 ### Feat
