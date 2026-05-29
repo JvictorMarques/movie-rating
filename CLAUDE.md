@@ -4,14 +4,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository layout
 
-The repo is a mono-repo with two top-level directories:
-
 ```
 movie-rating/
-├── app/                # FastAPI application (source, tests, migrations, scripts)
-├── k8s/                # Kubernetes manifests (Helm chart + Helmfile)
+├── app/                # FastAPI application (source, tests, migrations)
+├── k8s/                # Kubernetes manifests (Helm chart + ArgoCD App of Apps)
 ├── docker/             # OTel Collector, Grafana, Mimir, Tempo, Loki configs
 ├── terraform/          # AWS infrastructure modules (VPC, ECR, RDS, SSM, EKS)
+├── scripts/
+│   ├── app/            # load_test.py, latency_sim.py — manual testing utilities
+│   └── k8s/cluster/    # setup.sh — automated kind cluster bootstrap
+├── docs/images/        # Project assets (logo.svg)
 ├── compose.yaml        # Root orchestration — includes app/ and docker/ composes
 ├── CHANGELOG.md
 └── .pre-commit-config.yaml
@@ -75,59 +77,74 @@ A `/health` GET endpoint is defined directly in `app/app.py` (not under `/api/v1
 
 ## Kubernetes
 
-Config files live in `k8s/` — a Helm chart for the app plus a Helmfile that manages all releases.
+Config files live in `k8s/`. Deployments are managed via ArgoCD (GitOps) using the App of Apps pattern — no Helmfile.
 
 ```
 k8s/
-├── local/                            # Local (kind) environment configs
-│   ├── helmfile.yaml.gotmpl          # Helmfile — all releases for local env
-│   ├── kind-config.yaml              # kind cluster config (1 control-plane + 2 workers, ports 80/443)
-│   ├── startup-cluster.sh            # Automated setup: creates cluster, builds/loads images, deploys, waits for health
-│   └── values/                       # Helm values for local env (kong, goldilocks, observability stack)
-├── aws/
-│   └── values.yaml                   # Helm values for AWS env (ECR image refs, ALB ingress)
-└── movie-rating/                     # Helm chart for the app
-    ├── Chart.yaml                    # Chart metadata; postgresql bitnami dependency (condition: local.enabled)
+├── env/
+│   ├── local/                        # Local (kind) environment
+│   │   ├── main.yaml                 # ArgoCD App of Apps — bootstraps the cluster
+│   │   ├── setup/kind-config.yaml    # kind cluster config (1 control-plane + 3 workers, ports 80/443)
+│   │   ├── argo/
+│   │   │   ├── apps.yaml             # ApplicationSet — all infra releases
+│   │   │   └── movie-rating.yaml     # ArgoCD Application for the app chart
+│   │   └── values/                   # Helm values per release (argocd, kong, goldilocks, obs stack)
+│   └── aws/                          # AWS (EKS) environment
+│       ├── main.yaml                 # ArgoCD App of Apps — bootstraps the AWS cluster
+│       ├── argo/                     # apps.yaml + movie-rating.yaml
+│       └── values/                   # Helm values per release (argocd, LBC, autoscaler, ESO, movie-rating)
+└── helm/charts/movie-rating/         # Application Helm chart
+    ├── Chart.yaml                    # postgresql bitnami dependency (condition: local.enabled)
     ├── values.yaml                   # Default values (resources, image refs, secretStore, otlp, ingress)
     └── templates/
-        ├── _helpers.tpl              # Named templates: app.name, app.secret-name, migration.secret-name, local.db-address
+        ├── _helpers.tpl
         ├── app.yaml                  # Deployment, Service, Ingress; Secret (local) or ExternalSecret (AWS)
-        ├── migrations.yaml           # Helm hook Job; Secret (local) or ExternalSecret (AWS)
+        ├── migrations.yaml           # pre-upgrade Job; Secret (local) or ExternalSecret (AWS)
         ├── secret-store.yaml         # SecretStore for AWS SSM Parameter Store (AWS only)
         └── NOTES.txt
 ```
 
-**Releases managed by Helmfile** (`helmfile -e local sync` from `k8s/local/`):
+**Releases managed by ArgoCD ApplicationSet** (`k8s/env/local/argo/apps.yaml`):
 
-- `kong/kong` — Kong ingress controller (namespace `kong`)
-- `goldilocks/goldilocks` — VPA resource recommender (namespace `goldilocks`); namespace `movie-rating` is labelled `goldilocks.fairwinds.com/enabled=true` via a `postsync` hook
+- `argocd` — self-managed ArgoCD (namespace `argocd`)
+- `kong` — Kong ingress controller (namespace `kong`)
+- `goldilocks` — VPA resource recommender (namespace `goldilocks`); namespace `movie-rating` is labelled `goldilocks.fairwinds.com/enabled=true`
 - `mimir`, `tempo`, `loki`, `otel-collector`, `otel-collector-node`, `grafana` — observability stack (namespace `observability`)
-- `movie-rating/movie-rating` — the app chart (namespace `movie-rating`); depends on kong, goldilocks, and otel-collector in local env
+- `movie-rating` — the app chart (namespace `movie-rating`); defined in `k8s/env/local/argo/movie-rating.yaml`
 
 **Helm chart details:**
 
 - PostgreSQL is included as a bitnami dependency and only deployed when `local.enabled: true`
 - Secrets are provisioned as Kubernetes `Secret` (local) or `ExternalSecret` from AWS SSM Parameter Store (AWS), then injected via `envFrom.secretRef` in both the Deployment and the migration Job
 - `image.tag` holds the image repository name; `image.version` holds the tag — supports both local names (`movie-rating`) and ECR URIs
-- `migrations.yaml` runs as a `pre-upgrade` Helm hook Job; it uses the `movie-rating-migrations` image whose ENTRYPOINT runs `alembic upgrade head` directly (build deps and `uv sync` are baked into the image at build time)
-- The migration Job only runs on `helm upgrade`, not on `helm install` — on first install PostgreSQL is deployed as part of the chart resources and is not yet available when `pre-install` hooks fire
+- `migrations.yaml` runs as a `pre-upgrade` Helm hook Job; it uses the `movie-rating-migrations` image whose ENTRYPOINT runs `alembic upgrade head` directly
+- The migration Job only runs on `helm upgrade`, not on `helm install`
+- To override image versions per environment, add `helm.valuesObject` to the ArgoCD Application manifest (`k8s/env/local/argo/movie-rating.yaml`)
 
-**Local setup (kind):**
+**Local setup (kind) — automated:**
 
 ```bash
-# Create cluster
-kind create cluster --config k8s/local/kind-config.yaml
+bash scripts/k8s/cluster/setup.sh --create-cluster   # create + deploy everything
+bash scripts/k8s/cluster/setup.sh --delete-cluster   # destroy cluster
+```
 
-# Load images into kind (must be done before helmfile sync)
-kind load docker-image movie-rating:1.0.0
-kind load docker-image movie-rating-migrations:1.0.0
+Requires: `kind`, `helm`, `kubectl`, `docker` on `$PATH`.
 
-# Deploy all releases
-helmfile -e local sync -f k8s/local/helmfile.yaml.gotmpl
+**Local setup (kind) — manual:**
 
-# Access the app
+```bash
+kind create cluster --config k8s/env/local/setup/kind-config.yaml
+
+docker build --target runtime -t movie-rating:latest app/
+docker build --target migrations -t movie-rating-migrations:latest app/
+kind load docker-image movie-rating:latest
+kind load docker-image movie-rating-migrations:latest
+
+helm upgrade --install --create-namespace --namespace argocd argocd argo/argo-cd \
+  --version 9.5.15 -f k8s/env/local/values/argocd.yaml
+kubectl apply -f k8s/env/local/main.yaml
+
 # Add to /etc/hosts: 127.0.0.1 movie-rating.local.com
-curl http://movie-rating.local.com/health
 ```
 
 ## Observability
@@ -156,14 +173,12 @@ The app exports traces, metrics, and structured logs via OTLP gRPC to the collec
 - Ruff with `line-length = 79`, single quotes, preview mode
 - `select = ['I', 'F', 'E', 'W', 'PL', 'PT']`; ignored: `PLR2004`, `PLR0917`, `PLR0913`
 - mypy with `pydantic.mypy` plugin; check `src/` only
-- pre-commit hooks at repo root: trailing whitespace, EOF fixer, YAML check, ruff lint+format, mypy, pytest, terraform fmt/validate
+- pre-commit hooks at repo root: trailing whitespace, EOF fixer, YAML check, large-file check, ruff lint+format, hadolint (Dockerfile), mypy, pytest, terraform fmt/validate/tflint/docs, shellcheck (`scripts/`)
+
 
 ## README badges
 
-Badges are always on a **single line** inside `<div align="center">`, in this exact order:
+The `<div align="center">` block contains only the logo and italic description. Badges follow immediately after, outside the div, on two lines:
 
-1. **App stack** — Python, FastAPI, SQLAlchemy, Pydantic, PostgreSQL, OpenTelemetry
-2. **Container / Viz** — Docker, Grafana
-3. **Orchestration** — Kubernetes, Helm
-4. **Infra / Tooling** — Terraform, pre-commit
-5. **Meta** — Version (dynamic from pyproject.toml), License — always last
+- **Line 1** — all tech badges in this order: Python, FastAPI, SQLAlchemy, Pydantic, PostgreSQL, OpenTelemetry, Docker, Grafana, Kubernetes, Helm, Terraform, pre-commit
+- **Line 2** — License, Version (dynamic from `pyproject.toml`) — always last
