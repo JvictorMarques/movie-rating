@@ -31,6 +31,7 @@ HOST_DOMAIN="movie-rating.local.com"
 function create_cluster() {
     if kind get clusters | grep -q "${CLUSTER_NAME}"; then
         echo "Cluster ${CLUSTER_NAME} already exists. Skipping cluster creation."
+        exit 1
     else
         kind create cluster --name "${CLUSTER_NAME}" --config "${SCRIPT_DIR}"/../../../k8s/env/local/setup/kind-config.yaml
     fi

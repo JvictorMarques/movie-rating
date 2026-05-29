@@ -606,9 +606,9 @@ Edit `k8s/env/aws/values/movie-rating.yaml` and fill in the image URIs and secre
 
 | Value | Description |
 |---|---|
-| `app.image.tag` | Full ECR URI for the runtime image (e.g. `864981720117.dkr.ecr.us-east-1.amazonaws.com/movie-rating`) |
+| `app.image.tag` | Full ECR URI for the runtime image (e.g. `<account-id>.dkr.ecr.<region>.amazonaws.com/movie-rating`) |
 | `app.image.version` | Image tag to deploy (e.g. `latest`) |
-| `migrations.image.tag` | Full ECR URI for the migrations image (e.g. `864981720117.dkr.ecr.us-east-1.amazonaws.com/movie-rating`) |
+| `migrations.image.tag` | Full ECR URI for the migrations image (e.g. `<account-id>.dkr.ecr.<region>.amazonaws.com/movie-rating`) |
 | `migrations.image.version` | Migrations image tag (e.g. `migrations-latest`) |
 | `secretStore.region` | AWS region where SSM parameters are stored (e.g. `us-east-1`) |
 
