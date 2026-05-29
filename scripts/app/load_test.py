@@ -17,19 +17,19 @@ async def create_users(client: httpx.AsyncClient) -> list[dict]:
             'name': 'Alice Silva',
             'email': 'alice@example.com',
             'age': 28,
-            'password': 'senha123',
+            'password': 'senha123', # NOSONAR
         },
         {
             'name': 'Bruno Costa',
             'email': 'bruno@example.com',
             'age': 34,
-            'password': 'senha123',
+            'password': 'senha123', # NOSONAR
         },
         {
             'name': 'Carla Mendes',
             'email': 'carla@example.com',
             'age': 22,
-            'password': 'senha123',
+            'password': 'senha123', # NOSONAR
         },
     ]
     users = []
