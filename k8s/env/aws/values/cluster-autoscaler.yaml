@@ -1,8 +1,0 @@
-autoDiscovery:
-  clusterName: movie-rating-cluster
-
-awsRegion: us-east-1
-
-rbac:
-  serviceAccount:
-    name: cluster-autoscaler
