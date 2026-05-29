@@ -9,7 +9,7 @@ movie-rating/
 ├── app/                # FastAPI application (source, tests, migrations)
 ├── k8s/                # Kubernetes manifests (Helm chart + ArgoCD App of Apps)
 ├── docker/             # OTel Collector, Grafana, Mimir, Tempo, Loki configs
-├── terraform/          # AWS infrastructure modules (VPC, ECR, RDS, SSM, EKS)
+├── terraform/          # AWS infrastructure modules (VPC, ECR, RDS, SSM, EKS, addon Helm releases)
 ├── scripts/
 │   ├── app/            # load_test.py, latency_sim.py — manual testing utilities
 │   └── k8s/cluster/    # setup.sh — automated kind cluster bootstrap
@@ -91,8 +91,10 @@ k8s/
 │   │   └── values/                   # Helm values per release (argocd, kong, goldilocks, obs stack)
 │   └── aws/                          # AWS (EKS) environment
 │       ├── main.yaml                 # ArgoCD App of Apps — bootstraps the AWS cluster
-│       ├── argo/                     # apps.yaml + movie-rating.yaml
-│       └── values/                   # Helm values per release (argocd, LBC, autoscaler, ESO, movie-rating)
+│       ├── argo/
+│       │   └── movie-rating.yaml     # ArgoCD Application for the app chart
+│       └── values/
+│           └── movie-rating.yaml     # Helm values for the app chart
 └── helm/charts/movie-rating/         # Application Helm chart
     ├── Chart.yaml                    # postgresql bitnami dependency (condition: local.enabled)
     ├── values.yaml                   # Default values (resources, image refs, secretStore, otlp, ingress)
@@ -104,7 +106,9 @@ k8s/
         └── NOTES.txt
 ```
 
-**Releases managed by ArgoCD ApplicationSet** (`k8s/env/local/argo/apps.yaml`):
+**AWS addon management:** In the AWS environment, cluster addons (ArgoCD, AWS Load Balancer Controller, Cluster Autoscaler, External Secrets Operator, Metrics Server) are **not** managed by ArgoCD. They are installed via the `eks-helm-releases` Terraform module (`terraform/modules/eks-helm-releases`), which receives service account names from the `eks-pod-identity-roles` module and depends on `eks_cluster` and `eks_pod_identities`. There is no `apps.yaml` ApplicationSet for the AWS environment — ArgoCD only manages the app chart there.
+
+**Releases managed by ArgoCD ApplicationSet** (`k8s/env/local/argo/apps.yaml`, local only):
 
 - `argocd` — self-managed ArgoCD (namespace `argocd`)
 - `kong` — Kong ingress controller (namespace `kong`)
@@ -175,6 +179,10 @@ The app exports traces, metrics, and structured logs via OTLP gRPC to the collec
 - mypy with `pydantic.mypy` plugin; check `src/` only
 - pre-commit hooks at repo root: trailing whitespace, EOF fixer, YAML check, large-file check, ruff lint+format, hadolint (Dockerfile), mypy, pytest, terraform fmt/validate/tflint/docs, shellcheck (`scripts/`)
 
+
+## Documentation updates
+
+Every change to the project — including infrastructure (Terraform, k8s), observability config, scripts, and app code — must update CLAUDE.md if it affects the documented structure, commands, architecture, or workflows. No exceptions for "infra-only" changes.
 
 ## README badges
 
