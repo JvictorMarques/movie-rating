@@ -606,18 +606,19 @@ Edit `k8s/env/aws/values/movie-rating.yaml` and fill in the image URIs and secre
 
 | Value | Description |
 |---|---|
-| `app.image.tag` | Full ECR URI for the runtime image (e.g. `123456789.dkr.ecr.us-east-1.amazonaws.com/movie-rating`) |
+| `app.image.tag` | Full ECR URI for the runtime image (e.g. `864981720117.dkr.ecr.us-east-1.amazonaws.com/movie-rating`) |
 | `app.image.version` | Image tag to deploy (e.g. `latest`) |
-| `migrations.image.tag` | Full ECR URI for the migrations image (same repo, same URI) |
+| `migrations.image.tag` | Full ECR URI for the migrations image (e.g. `864981720117.dkr.ecr.us-east-1.amazonaws.com/movie-rating`) |
 | `migrations.image.version` | Migrations image tag (e.g. `migrations-latest`) |
-| `secretStore.name` | Name of the `SecretStore` resource (must match what External Secrets Operator expects) |
-| `secretStore.region` | AWS region where SSM parameters are stored |
+| `secretStore.region` | AWS region where SSM parameters are stored (e.g. `us-east-1`) |
 
 #### 3. Deploy with ArgoCD
 
-Install ArgoCD on the EKS cluster and apply the AWS App of Apps manifest:
+Configure `kubectl` to point at the EKS cluster, then install ArgoCD and apply the AWS App of Apps manifest:
 
 ```bash
+aws eks update-kubeconfig --region <region> --name <cluster-name>
+
 helm upgrade --install --create-namespace --namespace argocd argocd argo/argo-cd \
   --version 9.5.15 -f k8s/env/aws/values/argocd.yaml
 
