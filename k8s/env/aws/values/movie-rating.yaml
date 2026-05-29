@@ -25,12 +25,12 @@ migrations:
     version: migrations-latest
   resources:
     requests:
-      cpu: 1000m
-      memory: 1Gi
+      cpu: 500m
+      memory: 512Mi
       ephemeral-storage: 2Gi
     limits:
-      cpu: 1000m
-      memory: 1Gi
+      cpu: 500m
+      memory: 512Mi
       ephemeral-storage: 2Gi
 
 secretStore:
