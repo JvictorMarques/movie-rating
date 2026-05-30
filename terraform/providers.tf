@@ -9,17 +9,13 @@ provider "aws" {
   }
 }
 
-data "aws_eks_cluster" "this" {
-  name = module.eks_cluster.cluster_name
-}
-
 data "aws_eks_cluster_auth" "this" {
   name = module.eks_cluster.cluster_name
 }
 
 provider "helm" {
   kubernetes = {
-    host                   = data.aws_eks_cluster.this.endpoint
+    host                   = module.eks_cluster.cluster_endpoint
     cluster_ca_certificate = base64decode(module.eks_cluster.cluster_certificate_authority_data)
     token                  = data.aws_eks_cluster_auth.this.token
   }

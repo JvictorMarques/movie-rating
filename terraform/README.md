@@ -31,7 +31,6 @@
 
 | Name | Type |
 |------|------|
-| [aws_eks_cluster.this](https://registry.terraform.io/providers/hashicorp/aws/6.47.0/docs/data-sources/eks_cluster) | data source |
 | [aws_eks_cluster_auth.this](https://registry.terraform.io/providers/hashicorp/aws/6.47.0/docs/data-sources/eks_cluster_auth) | data source |
 
 ## Inputs
