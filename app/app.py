@@ -1,4 +1,5 @@
 import logging
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
@@ -9,20 +10,24 @@ from src.core.settings import Settings
 from src.core.telemetry import setup_telemetry
 from src.routers import actors, auth, movies, users
 
-app = FastAPI()
 settings = Settings()
 logger = logging.getLogger(__name__)
 
 _fmt = '%(asctime)s - %(name)s - %(process)d - %(levelname)s - %(message)s'
-logging.basicConfig(
-    level=logging.DEBUG
-    if settings.ENVIRONMENT == 'development'
-    else logging.INFO,
-    format=_fmt,
-)
 
-if settings.OTLP_ENDPOINT:
-    setup_telemetry(app, engine)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logging.basicConfig(
+        level=logging.DEBUG if settings.DEBUG else logging.INFO,
+        format=_fmt,
+    )
+    if settings.OTLP_ENDPOINT:
+        setup_telemetry(app, engine)
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(Middleware)
 
