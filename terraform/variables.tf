@@ -66,3 +66,13 @@ variable "eks_version" {
   type        = string
   default     = "1.35"
 }
+
+variable "ecr_repository_name" {
+  description = "Name of the ECR repository"
+  type        = list(string)
+  default = [
+    "movie-rating",
+    "movie-rating-migrations",
+    "movie-rating-helm-chart"
+  ]
+}

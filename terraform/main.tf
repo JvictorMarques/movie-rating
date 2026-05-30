@@ -6,8 +6,9 @@ module "vpc" {
 }
 
 module "ecr" {
-  source       = "./modules/ecr"
-  project_name = var.project_name
+  count               = length(var.ecr_repository_name)
+  source              = "./modules/ecr"
+  ecr_repository_name = var.ecr_repository_name[count.index]
 }
 
 module "rds" {
