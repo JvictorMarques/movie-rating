@@ -1,0 +1,41 @@
+name: Terraform Continuous Integration
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - terraform/**
+
+jobs:
+  hadolint:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: terraform
+    env:
+      TF_VERSION: 1.15.5
+      TF_LINT_VERSION: v0.62.1
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Check Terraform formatting
+        run: terraform fmt -check -recursive
+
+      - name: Initialize Terraform
+        run: terraform init -backend=false
+
+      - name: Validate Terraform configuration
+        run: terraform validate
+
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v6.2.2
+        with:
+          tflint_version: ${{ env.TF_LINT_VERSION }}
+
+      - name: Run TFLint
+        run: tflint --recursive

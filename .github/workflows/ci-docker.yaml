@@ -1,0 +1,22 @@
+name: Dockerfile Continuous Integration
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - app/Dockerfile
+      - app/.dockerignore
+
+jobs:
+  hadolint:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Lint Dockerfile
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile

@@ -1,0 +1,47 @@
+name: Application Continuous Integration
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - app/app.py
+      - app/pyproject.toml
+      - app/poetry.lock
+      - app/uv.lock
+      - app/src/**
+      - 'app/tests/**'
+
+jobs:
+  app:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    env:
+      PYTHON_VERSION: 3.13
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v8.1.0
+        with:
+          enable-cache: true
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Run linter
+        run: uv run task lint
+
+      - name: Run static type checker
+        run: uv run task mypy
+
+      - name: Run tests
+        run: uv run task test
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: coverage-report
+          path: htmlcov/
+          retention-days: 1
