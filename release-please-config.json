@@ -1,0 +1,20 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "packages": {
+    "app": {
+      "component": "app",
+      "release-type": "python",
+      "package-name": "movie-rating",
+      "tag-separator": "/",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "k8s/helm/charts/movie-rating": {
+      "component": "chart",
+      "release-type": "helm",
+      "package-name": "movie-rating-chart",
+      "tag-separator": "/",
+      "changelog-path": "CHANGELOG.md"
+    }
+  },
+  "pull-request-title-pattern": "chore: release ${component} ${version}"
+}
