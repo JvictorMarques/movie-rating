@@ -9,5 +9,5 @@
 .ruff_cache/
 __pycache__/
 
-# Helm chart files
-k8s/movie-rating/charts/*.tgz
+# Helm packages files
+*.tgz
