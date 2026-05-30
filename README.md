@@ -86,6 +86,7 @@ cp .env.example .env
 
 ```env
 ENVIRONMENT=development
+DEBUG=false
 
 DB_USER=postgres
 DB_PASSWORD=postgres
@@ -188,13 +189,14 @@ Two pre-built Grafana dashboards are automatically provisioned on startup:
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
-| `ENVIRONMENT` | No | `development` | Controls log level: `DEBUG` in development, `INFO` otherwise |
-| `DB_USER` | Yes | — | PostgreSQL username |
-| `DB_PASSWORD` | Yes | — | PostgreSQL password |
-| `DB_DATABASE` | Yes | — | Database name |
-| `DB_ADDRESS` | Yes | — | Database host address |
-| `DB_PORT` | Yes | 5432 | PostgreSQL port (typically `5432`) |
-| `JWT_SECRET_KEY` | Yes | — | Secret key for signing JWT tokens |
+| `ENVIRONMENT` | No | `development` | Non-`development` values enforce DB credential and JWT secret validation |
+| `DEBUG` | No | `false` | Set to `true` to enable `DEBUG` log level; otherwise `INFO` |
+| `DB_USER` | Prod only | `db` | PostgreSQL username |
+| `DB_PASSWORD` | Prod only | `db` | PostgreSQL password |
+| `DB_DATABASE` | Prod only | `db` | Database name |
+| `DB_ADDRESS` | Prod only | `localhost` | Database host address |
+| `DB_PORT` | No | `5432` | PostgreSQL port |
+| `JWT_SECRET_KEY` | Prod only | insecure default | Secret key for signing JWT tokens |
 | `JWT_ALGORITHM` | No | `HS256` | JWT signing algorithm |
 | `JWT_ACCESS_TOKEN_EXPIRE_MINUTES` | No | `15` | Token TTL in minutes |
 | `OTLP_ENDPOINT` | No | — | OTel Collector gRPC endpoint (e.g. `http://localhost:4317`). If omitted, telemetry is disabled. |
@@ -588,7 +590,7 @@ When `local.enabled: false`, the chart targets an AWS EKS cluster and switches f
 
 #### 1. Build and push images to ECR
 
-> **Note:** CI/CD automation for image builds and pushes is a work in progress. For now, build and push manually.
+> **Note:** GitHub Actions CI runs on pull requests targeting `main`: app CI (lint, mypy, tests, coverage artifact), docker CI (hadolint), and terraform CI (fmt, validate, tflint). Image builds and pushes are not yet automated — build and push manually for now.
 
 Build each image using the correct `--target` and push to your ECR repository. Follow the [AWS ECR push image guide](https://docs.aws.amazon.com/AmazonECR/latest/userguide/docker-push-ecr-image.html) for authentication and push steps — the only difference per image is the `--target` flag:
 
