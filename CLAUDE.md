@@ -95,15 +95,16 @@ k8s/
 │       │   └── movie-rating.yaml     # ArgoCD Application for the app chart
 │       └── values/
 │           └── movie-rating.yaml     # Helm values for the app chart
-└── helm/charts/movie-rating/         # Application Helm chart
-    ├── Chart.yaml                    # postgresql bitnami dependency (condition: local.enabled)
-    ├── values.yaml                   # Default values (resources, image refs, secretStore, otlp, ingress)
-    └── templates/
-        ├── _helpers.tpl
-        ├── app.yaml                  # Deployment, Service, Ingress; Secret (local) or ExternalSecret (AWS)
-        ├── migrations.yaml           # pre-upgrade Job; Secret (local) or ExternalSecret (AWS)
-        ├── secret-store.yaml         # SecretStore for AWS SSM Parameter Store (AWS only)
-        └── NOTES.txt
+├── helm/charts/movie-rating/         # Application Helm chart
+│   ├── Chart.yaml                    # postgresql bitnami dependency (condition: local.enabled)
+│   ├── values.yaml                   # Default values (resources, image refs, secretStore, otlp, ingress)
+│   └── templates/
+│       ├── _helpers.tpl
+│       ├── app.yaml                  # Deployment, Service, Ingress; Secret (local) or ExternalSecret (AWS)
+│       ├── migrations.yaml           # pre-upgrade Job; Secret (local) or ExternalSecret (AWS)
+│       ├── secret-store.yaml         # SecretStore for AWS SSM Parameter Store (AWS only)
+│       └── NOTES.txt
+└── helm/packages/                    # Packaged Helm chart tarballs (.tgz) for distribution/OCI push
 ```
 
 **AWS addon management:** In the AWS environment, cluster addons (ArgoCD, AWS Load Balancer Controller, Cluster Autoscaler, External Secrets Operator, Metrics Server) are **not** managed by ArgoCD. They are installed via the `eks-helm-releases` Terraform module (`terraform/modules/eks-helm-releases`), which receives service account names from the `eks-pod-identity-roles` module and depends on `eks_cluster` and `eks_pod_identities`. There is no `apps.yaml` ApplicationSet for the AWS environment — ArgoCD only manages the app chart there.
@@ -171,6 +172,21 @@ docker/
 ```
 
 The app exports traces, metrics, and structured logs via OTLP gRPC to the collector. `src/core/middleware.py` records `http_request` (counter) and `http_request_duration` (histogram) per route/method/status.
+
+## Release automation
+
+Releases are automated via [release-please](https://github.com/googleapis/release-please-action) (`.github/workflows/release-please.yaml`). On every push to `main`, the action reads conventional commits and opens a versioned release PR.
+
+Two packages are tracked independently in `release-please-config.json`:
+
+| Component | Path | Type | Tag format |
+|-----------|------|------|------------|
+| `app` | `app/` | `python` | `app/vX.Y.Z` |
+| `chart` | `k8s/helm/charts/movie-rating` | `helm` | `chart/vX.Y.Z` |
+
+Current versions are stored in `.release-please-manifest.json`. Both packages share `CHANGELOG.md` at the repo root.
+
+**ECR repositories** — the `ecr` Terraform module is invoked with `count` over the `ecr_repository_name` list variable (default: `movie-rating`, `movie-rating-migrations`, `movie-rating-helm-chart`). To add a new repo, append its name to the list in `terraform/variables.tf`.
 
 ## Code style
 
