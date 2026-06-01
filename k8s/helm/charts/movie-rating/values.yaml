@@ -18,7 +18,6 @@ postgresql:
 app:
   image:
     tag: movie-rating # Override the default image tag if you want to use a different one
-    version: latest # Override the default image version if you want to use a different one
   resources:
     requests:
       cpu: 15m # Goldilocks recommendation for 1 replica: 15m
@@ -36,7 +35,6 @@ app:
 migrations:
   image:
     tag: movie-rating-migrations
-    version: latest
   resources:
     requests:
       cpu: 50m
