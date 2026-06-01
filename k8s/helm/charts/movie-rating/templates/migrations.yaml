@@ -54,7 +54,7 @@ spec:
       automountServiceAccountToken: false
       containers:
       - name: migrations
-        image: {{ .Values.migrations.image.tag }}:{{ .Values.migrations.image.version | default .Chart.AppVersion }}
+        image: {{ .Values.migrations.image.tag }}:migrations-{{ .Values.migrations.image.version | default .Chart.AppVersion }}
         {{- if .Values.local.enabled }}
         imagePullPolicy: IfNotPresent
         {{- end }}
