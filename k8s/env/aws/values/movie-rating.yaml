@@ -4,7 +4,6 @@ local:
 app:
   image:
     tag: 864981720117.dkr.ecr.us-east-1.amazonaws.com/movie-rating
-    version: latest
   resources:
     requests:
       cpu: 100m
@@ -22,7 +21,6 @@ app:
 migrations:
   image:
     tag: 864981720117.dkr.ecr.us-east-1.amazonaws.com/movie-rating
-    version: migrations-latest
   resources:
     requests:
       cpu: 500m
