@@ -4,6 +4,9 @@ on:
 
 jobs:
   ghcr:
+    permissions:
+      contents: read
+      packages: write
     strategy:
       matrix:
         targets: [migrations, runtime]
