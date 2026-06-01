@@ -49,6 +49,9 @@ jobs:
           tags: ${{ env.REGISTRY }}:${{ env.IMAGE_TAG }}
 
   ecr:
+    permissions:
+      id-token: write
+      contents: read
     strategy:
       matrix:
         targets: [migrations, runtime]
