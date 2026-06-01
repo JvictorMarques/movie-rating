@@ -17,18 +17,18 @@ Options:
 
 AWS_REGION="us-east-1"
 AWS_ACCOUNT_ID=""
-ECR_LOGIN_URL="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
 
 APPLICATION_DIR="${SCRIPT_DIR}"/../../app
 APPLCATION_NAME="movie-rating"
 APPLICATION_VERSION=$(grep version "${APPLICATION_DIR}"/pyproject.toml | cut -d '=' -f2 | tr -d ' "')
-ECR_APPLICATION_REPOSITORY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${APPLCATION_NAME}"
 
 HELM_CHART_DIR="${SCRIPT_DIR}"/../../k8s/helm/charts/movie-rating
 HELM_PACKAGE_DIR="${SCRIPT_DIR}"/../../k8s/helm/packages
 HELM_REPOSITORY_NAME="helm-chart"
 HELM_VERSION=$(grep -m 1 version "${HELM_CHART_DIR}"/Chart.yaml | cut -d ':' -f 2 | tr -d ' ')
-ECR_HELM_REPOSITORY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${HELM_REPOSITORY_NAME}"
+
+APPLICATION_REPOSITORY_OVERRIDE=""
+HELM_REPOSITORY_OVERRIDE=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -45,11 +45,11 @@ while [[ $# -gt 0 ]]; do
             shift 2
             ;;
         --application-repository)
-            ECR_APPLICATION_REPOSITORY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/$2"
+            APPLICATION_REPOSITORY_OVERRIDE="$2"
             shift 2
             ;;
         --helm-repository)
-            ECR_HELM_REPOSITORY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/$2"
+            HELM_REPOSITORY_OVERRIDE="$2"
             shift 2
             ;;
         *)
@@ -62,6 +62,11 @@ while [[ $# -gt 0 ]]; do
 done
 
 [[ -z "$AWS_ACCOUNT_ID" ]] && echo "Error: AWS account ID is required. Please provide it using the --account-id option." >&2 && exit 1
+
+ECR_BASE="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+ECR_LOGIN_URL="${ECR_BASE}"
+ECR_APPLICATION_REPOSITORY="${ECR_BASE}/${APPLICATION_REPOSITORY_OVERRIDE:-${APPLCATION_NAME}}"
+ECR_HELM_REPOSITORY="${ECR_BASE}/${HELM_REPOSITORY_OVERRIDE:-${HELM_REPOSITORY_NAME}}"
 
 aws ecr get-login-password --region "${AWS_REGION}" | docker login --username AWS --password-stdin "${ECR_LOGIN_URL}"
 
