@@ -43,7 +43,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v7
         with:
-          context: .
+          context: ./app
           target: ${{ matrix.targets }}
           push: true
           tags: ${{ env.REGISTRY }}:${{ env.IMAGE_TAG }}
@@ -97,7 +97,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v7
         with:
-          context: .
+          context: ./app
           target: ${{ matrix.targets }}
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.APP }}:${{ env.IMAGE_TAG }}
