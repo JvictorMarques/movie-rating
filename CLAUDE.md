@@ -12,6 +12,7 @@ movie-rating/
 ├── terraform/          # AWS infrastructure modules (VPC, ECR, RDS, SSM, EKS, addon Helm releases)
 ├── scripts/
 │   ├── app/            # load_test.py, latency_sim.py — manual testing utilities
+│   ├── aws/            # build.sh — build and push Docker images and Helm chart to ECR
 │   └── k8s/cluster/    # setup.sh — automated kind cluster bootstrap
 ├── docs/images/        # Project assets (logo.svg)
 ├── compose.yaml        # Root orchestration — includes app/ and docker/ composes
@@ -186,7 +187,9 @@ Two packages are tracked independently in `release-please-config.json`:
 
 Current versions are stored in `.release-please-manifest.json`. Both packages share `CHANGELOG.md` at the repo root.
 
-**ECR repositories** — the `ecr` Terraform module is invoked with `count` over the `ecr_repository_name` list variable (default: `movie-rating`, `movie-rating-migrations`, `movie-rating-helm-chart`). To add a new repo, append its name to the list in `terraform/variables.tf`.
+**ECR repositories** — the `ecr` Terraform module is invoked with `count` over the `ecr_repository_name` list variable (default: `movie-rating`, `movie-rating-helm-chart`). To add a new repo, append its name to the list in `terraform/variables.tf`. The migrations image is pushed to the application repository using a `migrations-<version>` tag rather than a separate ECR repo.
+
+**AWS build script** — `scripts/aws/build.sh` builds both Docker images (runtime and migrations) and the Helm chart, then pushes them to ECR. Requires `--account-id`; optionally accepts `--region`, `--application-repository`, and `--helm-repository`.
 
 ## Code style
 
