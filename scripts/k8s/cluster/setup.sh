@@ -5,12 +5,10 @@ HELP="
 Usage: $(basename "$0" | cut -d. -f1) [OPTIONS]
 Options:
     -h, Show this help message
-    -v Show the version of the script
     --create-cluster Create the Kubernetes cluster and deploy the application
     --delete-cluster Delete the Kubernetes cluster
 "
 
-VERSION="1.0.0"
 CLUSTER_NAME="movie-rating"
 APPLICATION_NAMESPACE="movie-rating"
 
@@ -101,10 +99,6 @@ while [[ $# -gt 0 ]]; do
     case "$1" in
         -h|--help)
             echo "$HELP"
-            exit 0
-            ;;
-        -v|--version)
-            echo "Version: $VERSION"
             exit 0
             ;;
         --create-cluster)
