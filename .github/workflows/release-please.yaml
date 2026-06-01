@@ -1,5 +1,5 @@
-run-name: "Generate new version: ${{ github.event.head_commit.message }}"
-name: Generate new version
+run-name: "Check for new version"
+name: Check for new version
 
 on:
   push:
