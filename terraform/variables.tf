@@ -8,8 +8,7 @@ variable "default_tags" {
   description = "Default tags for AWS resources"
   type        = map(string)
   default = {
-    Environment = "Test"
-    Project     = "Default Tag"
+    Environment = "Production"
   }
 }
 
