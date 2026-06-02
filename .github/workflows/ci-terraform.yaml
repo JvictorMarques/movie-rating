@@ -1,6 +1,10 @@
 name: Terraform Continuous Integration
 on:
   workflow_call:
+    secrets:
+      AWS_ROLE_TO_ASSUME:
+        description: 'AWS Role to assume for Terraform operations'
+        required: true
 
 jobs:
   ci:
