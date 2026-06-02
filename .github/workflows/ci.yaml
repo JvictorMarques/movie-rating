@@ -49,6 +49,9 @@ jobs:
   terraform:
     needs: changes
     if: needs.changes.outputs.terraform == 'true'
+    permissions:
+      contents: read
+      id-token: write
     uses: ./.github/workflows/ci-terraform.yaml
 
   validate:
