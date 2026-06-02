@@ -1,0 +1,67 @@
+run-name: CI triggered by ${{ github.actor }} on ${{ github.head_ref }}
+name: Run Continuous Integration
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      app: ${{ steps.changes.outputs.app }}
+      docker: ${{ steps.changes.outputs.docker }}
+      terraform: ${{ steps.changes.outputs.terraform }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Paths Changes Filter
+        id: changes
+        uses: dorny/paths-filter@v4.0.1
+        with:
+          filters: |
+            app:
+              - 'app/app.py'
+              - 'app/pyproject.toml'
+              - 'app/poetry.lock'
+              - 'app/uv.lock'
+              - 'app/src/**'
+              - 'app/tests/**'
+              - 'app/alembic.ini'
+              - 'app/migrations/**'
+            docker:
+              - 'app/Dockerfile'
+              - 'app/.dockerignore'
+            terraform:
+              - 'terraform/**'
+
+  app:
+    needs: changes
+    if: needs.changes.outputs.app == 'true'
+    uses: ./.github/workflows/ci-app.yaml
+
+  docker:
+    needs: changes
+    if: needs.changes.outputs.docker == 'true'
+    uses: ./.github/workflows/ci-docker.yaml
+
+  terraform:
+    needs: changes
+    if: needs.changes.outputs.terraform == 'true'
+    uses: ./.github/workflows/ci-terraform.yaml
+
+  validate:
+    needs: [app, docker, terraform]
+    runs-on: ubuntu-latest
+    steps:
+      - name: All checks passed or skipped
+        run: |
+          declare -A results
+          results[app]="${{ needs.app.result }}"
+          results[docker]="${{ needs.docker.result }}"
+          results[terraform]="${{ needs.terraform.result }}"
+
+          for job in ${!results[@]}; do
+            if [[ ${results[$job]} == "$job: failure" ]]; then
+              echo "Job '$job' failed."
+              exit 1
+            fi
+            done
