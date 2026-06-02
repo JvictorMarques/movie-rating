@@ -1,10 +1,17 @@
-run-name: "Check for new version ${{ github.run_number }}"
+run-name: "Check for new version @${{ github.actor }} #${{ github.run_number }}"
 name: Check for new version
 
 on:
   push:
     branches:
       - main
+    paths:
+      - 'app/**'
+      - 'k8s/helm/charts/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: write
