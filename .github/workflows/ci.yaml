@@ -61,8 +61,8 @@ jobs:
           results[terraform]="${{ needs.terraform.result }}"
 
           for job in ${!results[@]}; do
-            if [[ ${results[$job]} == "$job: failure" ]]; then
+            if [[ ${results[$job]} == "failure" ]]; then
               echo "Job '$job' failed."
               exit 1
             fi
-            done
+          done
