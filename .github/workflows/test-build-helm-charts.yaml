@@ -1,0 +1,16 @@
+name: Test Build Helm Charts
+on:
+  workflow_dispatch:
+
+jobs:
+  test-build:
+    permissions:
+      contents: read
+      id-token: write
+      packages: write
+    uses: ./.github/workflows/build-helm-charts.yaml
+    with:
+      registry: '["ghcr", "ecr"]'
+    secrets:
+      AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
