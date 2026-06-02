@@ -1,4 +1,4 @@
-name: Push image to registry
+name: Build and Push Docker Image
 on:
   workflow_call:
     inputs:
@@ -16,14 +16,15 @@ on:
 
 jobs:
   docker-image-build-push:
+    name: Build and Push Docker Image to ${{ matrix.registry }}
     permissions:
       contents: read
       id-token: write
       packages: write
     strategy:
       matrix:
-        targets: [migrations, runtime]
         registry: ${{ fromJson(inputs.registry) }}
+        targets: [migrations, runtime]
     runs-on: ubuntu-latest
     defaults:
       run:
