@@ -1,3 +1,4 @@
+run-name: Application Continuous Integration triggered by ${{ github.actor }} on ${{ github.head_ref }}
 name: Application Continuous Integration
 on:
   pull_request:
@@ -9,7 +10,9 @@ on:
       - app/poetry.lock
       - app/uv.lock
       - app/src/**
-      - 'app/tests/**'
+      - app/tests/**
+      - app/alembic.ini
+      - app/migrations/**
 
 jobs:
   app:
@@ -43,5 +46,5 @@ jobs:
       - uses: actions/upload-artifact@v7
         with:
           name: coverage-report
-          path: htmlcov/
+          path: app/htmlcov/
           retention-days: 1

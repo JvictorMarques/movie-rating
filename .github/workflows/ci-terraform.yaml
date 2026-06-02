@@ -1,3 +1,4 @@
+run-name: Terraform Continuous Integration triggered by ${{ github.actor }} on ${{ github.head_ref }}
 name: Terraform Continuous Integration
 on:
   pull_request:
@@ -7,7 +8,7 @@ on:
       - terraform/**
 
 jobs:
-  hadolint:
+  terraform:
     runs-on: ubuntu-latest
     defaults:
       run:
