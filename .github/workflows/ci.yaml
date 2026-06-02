@@ -50,6 +50,7 @@ jobs:
 
   validate:
     needs: [app, docker, terraform]
+    if: always()
     runs-on: ubuntu-latest
     steps:
       - name: All checks passed or skipped
