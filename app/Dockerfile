@@ -31,7 +31,7 @@ COPY --from=builder --chown=${USER}:${USER} /app /app
 
 RUN rm alembic.ini \
     && rm -rf migrations
-
+#
 USER ${USER}
 
 ENV PATH="/app/.venv/bin:$PATH"
