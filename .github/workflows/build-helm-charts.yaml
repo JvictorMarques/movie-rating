@@ -72,12 +72,12 @@ jobs:
       - name: Set registry repository
         run: |
           function ghcr_registry() {
-            local repo="${{ github.repository }}"
-            echo "oci://ghcr.io/helm-chart/$(echo $repo | tr '[:upper:]' '[:lower:]')"
+            local repo="$(echo ${{ github.repository_owner }}/helm-chart/$(echo ${{ github.repository }} | cut -d'/' -f2) | tr '[:upper:]' '[:lower:]')"
+            echo "oci://ghcr.io/$repo"
           }
 
           function ecr_registry() {
-            local repo="helm-chart/$(echo ${{ github.repository }} | cut -d'/' -f2)"
+            local repo="helm-chart"
             echo "oci://${{ env.ECR_REGISTRY }}/$repo"
           }
 
