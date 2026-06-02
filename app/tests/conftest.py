@@ -198,3 +198,4 @@ async def movie_rated(session, movie_without_rating, user):
     await session.refresh(movie_rated)
 
     return movie_rated
+# Validate Python workflow
