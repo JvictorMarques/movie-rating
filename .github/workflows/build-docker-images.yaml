@@ -9,10 +9,10 @@ on:
     secrets:
       AWS_ROLE_TO_ASSUME:
         description: 'AWS IAM Role ARN to assume for ECR access'
-        required: false
+        required: true
       ACCOUNT_ID:
         description: 'AWS Account ID for ECR'
-        required: false
+        required: true
 concurrency:
   group: 'docker-image-build-push'
   cancel-in-progress: true
@@ -60,7 +60,8 @@ jobs:
       - name: Verify if the repository exists in ECR
         if: ${{ matrix.registry == 'ecr' }}
         run: |
-          aws ecr describe-repositories --repository-names $(echo ${{ github.repository }} | cut -d'/' -f2) || \
+          aws ecr describe-repositories \
+            --repository-names $(echo ${{ github.repository }} | cut -d'/' -f2) \
             --no-cli-pager
 
       - name: Set image repository
