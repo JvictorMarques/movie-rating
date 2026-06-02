@@ -4,6 +4,9 @@ on:
 
 jobs:
   ci:
+    permissions:
+      contents: read
+      id-token: write
     runs-on: ubuntu-latest
     defaults:
       run:
