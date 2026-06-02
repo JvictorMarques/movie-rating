@@ -1,0 +1,9 @@
+name: Test Build Docker Images
+on:
+  workflow_dispatch:
+
+jobs:
+  test-build:
+    uses: ./.github/workflows/build-docker-images.yaml
+    with:
+      registry: '["ghcr", "ecr"]'
