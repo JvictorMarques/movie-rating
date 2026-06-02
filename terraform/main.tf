@@ -79,4 +79,3 @@ module "addons" {
     module.eks_pod_identities
   ]
 }
-# Validate Terraform workflow
