@@ -25,6 +25,7 @@ jobs:
       id-token: write
       packages: write
     strategy:
+      fail-fast: false
       matrix:
         registry: ${{ fromJson(inputs.registry) }}
         targets: [migrations, runtime]
@@ -55,6 +56,13 @@ jobs:
         with:
           aws-region: ${{ vars.AWS_REGION }}
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+
+      - name: Verify if the repository exists in ECR
+        if: ${{ matrix.registry == 'ecr' }}
+        run: |
+          aws ecr describe-repositories --repository-names $(echo ${{ github.repository }} | cut -d'/' -f2) || \
+            --output json \
+            --no-cli-pager \
 
       - name: Set image repository
         run: |
