@@ -61,8 +61,7 @@ jobs:
         if: ${{ matrix.registry == 'ecr' }}
         run: |
           aws ecr describe-repositories --repository-names $(echo ${{ github.repository }} | cut -d'/' -f2) || \
-            --output json \
-            --no-cli-pager \
+            --no-cli-pager
 
       - name: Set image repository
         run: |
