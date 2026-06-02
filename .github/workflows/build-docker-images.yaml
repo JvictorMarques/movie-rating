@@ -13,10 +13,13 @@ on:
       ACCOUNT_ID:
         description: 'AWS Account ID for ECR'
         required: false
+concurrency:
+  group: 'docker-image-build-push'
+  cancel-in-progress: true
 
 jobs:
   docker-image-build-push:
-    name: Build and Push Docker Image to ${{ matrix.registry }}
+    name: ${{ matrix.registry }}-${{ matrix.targets }}
     permissions:
       contents: read
       id-token: write
