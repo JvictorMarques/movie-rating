@@ -1,4 +1,4 @@
-run-name: Dockerfile Continuous Integration triggered by ${{ github.actor }} on ${{ github.ref_name }}
+run-name: Dockerfile Continuous Integration triggered by ${{ github.actor }} on ${{ github.head_ref }}
 name: Dockerfile Continuous Integration
 on:
   pull_request:

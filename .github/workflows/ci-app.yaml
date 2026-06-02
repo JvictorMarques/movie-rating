@@ -1,4 +1,4 @@
-run-name: Application Continuous Integration triggered by ${{ github.actor }} on ${{ github.ref_name }}
+run-name: Application Continuous Integration triggered by ${{ github.actor }} on ${{ github.head_ref }}
 name: Application Continuous Integration
 on:
   pull_request:

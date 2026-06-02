@@ -1,4 +1,4 @@
-run-name: Terraform Continuous Integration triggered by ${{ github.actor }} on ${{ github.ref_name }}
+run-name: Terraform Continuous Integration triggered by ${{ github.actor }} on ${{ github.head_ref }}
 name: Terraform Continuous Integration
 on:
   pull_request:
