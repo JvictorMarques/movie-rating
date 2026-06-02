@@ -1,15 +1,9 @@
-run-name: Dockerfile Continuous Integration triggered by ${{ github.actor }} on ${{ github.head_ref }}
 name: Dockerfile Continuous Integration
 on:
-  pull_request:
-    branches:
-      - main
-    paths:
-      - app/Dockerfile
-      - app/.dockerignore
+  workflow_call:
 
 jobs:
-  docker:
+  ci:
     runs-on: ubuntu-latest
     defaults:
       run:
