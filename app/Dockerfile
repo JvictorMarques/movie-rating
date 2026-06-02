@@ -29,8 +29,8 @@ WORKDIR /app
 
 COPY --from=builder --chown=${USER}:${USER} /app /app
 
-RUN rm alembic.ini
-RUN rm -rf migrations
+RUN rm alembic.ini \
+    && rm -rf migrations
 
 USER ${USER}
 
