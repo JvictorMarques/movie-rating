@@ -61,8 +61,11 @@ jobs:
           results[terraform]="${{ needs.terraform.result }}"
 
           for job in ${!results[@]}; do
+            echo "::group::$job: ${results[$job]}"
             if [[ ${results[$job]} == "failure" ]]; then
-              echo "::error:: Job '$job' failed."
+              echo "::error::Job '$job' failed."
+              echo "::endgroup::"
               exit 1
             fi
+            echo "::endgroup::"
           done
