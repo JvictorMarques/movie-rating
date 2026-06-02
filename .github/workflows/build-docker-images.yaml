@@ -6,6 +6,13 @@ on:
         description: 'JSON array of registries, e.g. ''["ghcr", "ecr"]'' or ''["ghcr"]'''
         required: true
         type: string
+    secrets:
+      AWS_ROLE_TO_ASSUME:
+        description: 'AWS IAM Role ARN to assume for ECR access'
+        required: false
+      ACCOUNT_ID:
+        description: 'AWS Account ID for ECR'
+        required: false
 
 jobs:
   ghcr:

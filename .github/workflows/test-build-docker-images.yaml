@@ -11,3 +11,6 @@ jobs:
     uses: ./.github/workflows/build-docker-images.yaml
     with:
       registry: '["ghcr", "ecr"]'
+    secrets:
+      AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
