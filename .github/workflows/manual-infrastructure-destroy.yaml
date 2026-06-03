@@ -7,7 +7,31 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  app:
+    name: Destroy app-of-apps on Kubernetes
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: k8s/env/aws
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6.2.0
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig \
+          --name ${{ vars.EKS_CLUSTER_NAME }} \
+          --region ${{ vars.AWS_REGION }}
+
+      - name: Destroy app-of-apps
+        run: |
+          kubectl delete -f main.yaml
+
   terraform:
+    needs: app
     name: Destroy Terraform
     runs-on: ubuntu-latest
     permissions:
