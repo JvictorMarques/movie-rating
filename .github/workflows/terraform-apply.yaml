@@ -15,12 +15,16 @@ jobs:
     defaults:
       run:
         working-directory: terraform/
+    env:
+      TF_VAR_ecr_repository_name: '["${{ vars.ECR_DOCKER_REGISTRY }}", "${{ vars.ECR_HELM_REGISTRY }}"]'
     steps:
       - name: Checkout code
         uses: actions/checkout@v6.0.3
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v4.0.1
+        with:
+          terraform_version: ${{ vars.TF_VERSION }}
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v6.2.0
@@ -49,6 +53,7 @@ jobs:
     uses: ./.github/workflows/build-docker-images.yaml
     with:
       registry: '["ghcr", "ecr"]'
+      ecr_repository_name: ${{ vars.ECR_DOCKER_REGISTRY }}
     secrets:
       AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
@@ -62,6 +67,7 @@ jobs:
     uses: ./.github/workflows/build-helm-charts.yaml
     with:
       registry: '["ghcr", "ecr"]'
+      ecr_repository_name: ${{ vars.ECR_HELM_REGISTRY }}
     secrets:
       AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}

@@ -4,8 +4,12 @@ on:
     inputs:
       registry:
         description: 'JSON array of registries, e.g. ''["ghcr", "ecr"]'' or ''["ghcr"]'''
-        required: true
         type: string
+        required: true
+      ecr_repository_name:
+        description: 'Repository name for ECR (without registry prefix), e.g. ''movie-rating'''
+        type: string
+        required: true
     secrets:
       AWS_ROLE_TO_ASSUME:
         description: 'AWS IAM Role ARN to assume for ECR access'
@@ -61,7 +65,7 @@ jobs:
         if: ${{ matrix.registry == 'ecr' }}
         run: |
           aws ecr describe-repositories \
-            --repository-names $(echo ${{ github.repository }} | cut -d'/' -f2) \
+            --repository-names ${{ inputs.ecr_repository_name }} \
             --no-cli-pager
 
       - name: Set image repository
@@ -71,7 +75,7 @@ jobs:
             echo "ghcr.io/$(echo $repo | tr '[:upper:]' '[:lower:]')"
           }
           if [ "${{ matrix.registry }}" = "ecr" ]; then
-            echo "REGISTRY=${{ secrets.ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/$(echo ${{ github.repository }} | cut -d'/' -f2)" >> $GITHUB_ENV
+            echo "REGISTRY=${{ secrets.ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ inputs.ecr_repository_name }}" >> $GITHUB_ENV
           else
             echo "REGISTRY=$(ghcr_registry)" >> $GITHUB_ENV
           fi
