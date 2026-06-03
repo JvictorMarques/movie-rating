@@ -76,6 +76,6 @@ module "addons" {
 
   depends_on = [
     module.eks_cluster,
-    module.eks_pod_identities
+    module.eks_pod_identities,
   ]
 }

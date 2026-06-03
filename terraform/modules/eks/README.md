@@ -55,4 +55,5 @@ No modules.
 | <a name="output_cluster_name"></a> [cluster\_name](#output\_cluster\_name) | n/a |
 | <a name="output_cluster_security_group_id"></a> [cluster\_security\_group\_id](#output\_cluster\_security\_group\_id) | n/a |
 | <a name="output_cluster_version"></a> [cluster\_version](#output\_cluster\_version) | n/a |
+| <a name="output_node_group_name"></a> [node\_group\_name](#output\_node\_group\_name) | n/a |
 <!-- END_TF_DOCS -->
