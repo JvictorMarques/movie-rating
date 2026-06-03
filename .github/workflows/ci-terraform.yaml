@@ -29,6 +29,12 @@ jobs:
       - name: Check Terraform formatting
         run: terraform fmt -check -recursive
 
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6.2.0
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+
       - name: Initialize Terraform
         run: |
           terraform init \
@@ -48,12 +54,6 @@ jobs:
 
       - name: Run TFLint
         run: tflint --recursive
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v6.2.0
-        with:
-          aws-region: ${{ vars.AWS_REGION }}
-          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
 
       - name: Run Terraform Plan
         id: plan
