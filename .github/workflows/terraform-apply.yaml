@@ -22,6 +22,12 @@ jobs:
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v4.0.1
 
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6.2.0
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+
       - name: Terraform Init
         run: |
           terraform init \
@@ -30,12 +36,6 @@ jobs:
             -backend-config="region=${{ vars.AWS_REGION }}" \
             -backend-config="use_lockfile=true" \
             -backend-config="encrypt=true"
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v6.2.0
-        with:
-          aws-region: ${{ vars.AWS_REGION }}
-          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
 
       - name: Terraform Apply
         run: terraform apply -auto-approve
