@@ -51,7 +51,7 @@ variable "db_name" {
 variable "db_username" {
   description = "The username for the database"
   type        = string
-  default     = "movie-rating"
+  default     = "movie_rating"
 }
 
 variable "multi_az" {

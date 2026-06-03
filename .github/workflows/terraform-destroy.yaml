@@ -1,4 +1,4 @@
-name: Create Infraestructure
+name: Destroy Infraestructure
 on:
   workflow_dispatch:
 
@@ -37,5 +37,5 @@ jobs:
             -backend-config="use_lockfile=true" \
             -backend-config="encrypt=true"
 
-      - name: Terraform Apply
-        run: terraform apply -auto-approve
+      - name: Terraform Destroy
+        run: terraform destroy -auto-approve
