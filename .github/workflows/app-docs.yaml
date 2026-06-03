@@ -1,5 +1,6 @@
 name: Upload App Documentation
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -14,7 +15,7 @@ jobs:
       url: https://jvictormarques.github.io/movie-rating/
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
     defaults:
       run:
         working-directory: app
@@ -31,5 +32,11 @@ jobs:
         - name: Install dependencies
           run: uv sync --frozen
 
+        - name: Configure Git credentials
+          run: |
+            git config --global user.name "github-actions[bot]"
+            git config --global user.email "github-actions[bot]@users.noreply.github.com"
+            git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+
         - name: Upload the docs
-          run: uv run mkdocs gh-deploy
+          run: uv run mkdocs gh-deploy --force
