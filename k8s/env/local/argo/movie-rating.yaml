@@ -22,7 +22,7 @@ spec:
             version: latest
         migrations:
           image:
-            tag: movie-rating-migrations
+            tag: movie-rating
             version: latest
   destination:
     namespace: movie-rating
