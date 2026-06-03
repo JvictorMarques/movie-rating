@@ -13,8 +13,7 @@ CLUSTER_NAME="movie-rating"
 APPLICATION_NAMESPACE="movie-rating"
 
 TAG_VERSION="latest"
-APP_IMAGE_TAG_PREFIX="movie-rating"
-MIGRATIONS_IMAGE_TAG_PREFIX="movie-rating-migrations"
+IMAGE_TAG_PREFIX="movie-rating"
 
 ARGO_CD_VERSION="9.5.15"
 ARGO_CD_REPOSITORY="https://argoproj.github.io/argo-helm"
@@ -46,13 +45,13 @@ function delete_cluster() {
 }
 
 function build_images() {
-    docker build -t ${APP_IMAGE_TAG_PREFIX}:${TAG_VERSION} "${SCRIPT_DIR}"/../../../app --target runtime
-    docker build -t ${MIGRATIONS_IMAGE_TAG_PREFIX}:${TAG_VERSION} "${SCRIPT_DIR}"/../../../app --target migrations
+    docker build -t ${IMAGE_TAG_PREFIX}:${TAG_VERSION} "${SCRIPT_DIR}"/../../../app --target runtime
+    docker build -t ${IMAGE_TAG_PREFIX}:migrations-${TAG_VERSION} "${SCRIPT_DIR}"/../../../app --target migrations
 }
 
 function load_images_into_cluster() {
-    kind load docker-image ${APP_IMAGE_TAG_PREFIX}:${TAG_VERSION} --name "${CLUSTER_NAME}"
-    kind load docker-image ${MIGRATIONS_IMAGE_TAG_PREFIX}:${TAG_VERSION} --name "${CLUSTER_NAME}"
+    kind load docker-image ${IMAGE_TAG_PREFIX}:${TAG_VERSION} --name "${CLUSTER_NAME}"
+    kind load docker-image ${IMAGE_TAG_PREFIX}:migrations-${TAG_VERSION} --name "${CLUSTER_NAME}"
 }
 
 function deploy_argocd() {
