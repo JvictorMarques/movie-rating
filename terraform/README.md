@@ -41,7 +41,7 @@
 | <a name="input_db_name"></a> [db\_name](#input\_db\_name) | The name of the database to create when the DB instance is created | `string` | `"movie_rating"` | no |
 | <a name="input_db_username"></a> [db\_username](#input\_db\_username) | The username for the database | `string` | `"movie_rating"` | no |
 | <a name="input_default_tags"></a> [default\_tags](#input\_default\_tags) | Default tags for AWS resources | `map(string)` | <pre>{<br/>  "Environment": "Production"<br/>}</pre> | no |
-| <a name="input_ecr_repository_name"></a> [ecr\_repository\_name](#input\_ecr\_repository\_name) | Name of the ECR repository | `list(string)` | <pre>[<br/>  "movie-rating",<br/>  "movie-rating-helm-chart"<br/>]</pre> | no |
+| <a name="input_ecr_repository_name"></a> [ecr\_repository\_name](#input\_ecr\_repository\_name) | Name of the ECR repository | `list(string)` | <pre>[<br/>  "movie-rating",<br/>  "helm-chart/movie-rating"<br/>]</pre> | no |
 | <a name="input_eks_version"></a> [eks\_version](#input\_eks\_version) | Kubernetes version to use for the EKS cluster. | `string` | `"1.35"` | no |
 | <a name="input_engine_version"></a> [engine\_version](#input\_engine\_version) | The version of the database engine to use | `string` | `"17.10"` | no |
 | <a name="input_instance_class"></a> [instance\_class](#input\_instance\_class) | The instance class for the RDS instance | `string` | `"db.t3.micro"` | no |

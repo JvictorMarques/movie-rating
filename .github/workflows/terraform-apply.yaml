@@ -39,3 +39,29 @@ jobs:
 
       - name: Terraform Apply
         run: terraform apply -auto-approve
+
+  docker:
+    needs: terraform
+    permissions:
+      contents: read
+      id-token: write
+      packages: write
+    uses: ./.github/workflows/build-docker-images.yaml
+    with:
+      registry: '["ghcr", "ecr"]'
+    secrets:
+      AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+
+  helm:
+    needs: terraform
+    permissions:
+      contents: read
+      id-token: write
+      packages: write
+    uses: ./.github/workflows/build-helm-charts.yaml
+    with:
+      registry: '["ghcr", "ecr"]'
+    secrets:
+      AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}

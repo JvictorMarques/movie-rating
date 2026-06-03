@@ -71,6 +71,6 @@ variable "ecr_repository_name" {
   type        = list(string)
   default = [
     "movie-rating",
-    "movie-rating-helm-chart"
+    "helm-chart/movie-rating"
   ]
 }
