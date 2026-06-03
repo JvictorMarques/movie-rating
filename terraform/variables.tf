@@ -45,7 +45,7 @@ variable "engine_version" {
 variable "db_name" {
   description = "The name of the database to create when the DB instance is created"
   type        = string
-  default     = "movie-rating"
+  default     = "movie_rating"
 }
 
 variable "db_username" {
