@@ -189,15 +189,27 @@ Current versions are stored in `.release-please-manifest.json`. Both packages sh
 
 **CI/CD workflows** — `.github/workflows/` contains the following workflows:
 
+Reusable workflows (prefixed `_`, called via `workflow_call`):
+
+| Workflow | Purpose |
+|----------|---------|
+| `_ci-app.yaml` | Lint, type-check, migrate, test, upload coverage artifact |
+| `_ci-docker.yaml` | Lint Dockerfile via hadolint |
+| `_ci-terraform.yaml` | fmt check, init, validate, tflint, plan; posts plan as PR comment |
+| `_build-push-docker-images.yaml` | Build and push Docker images (`runtime` + `migrations` targets) to GHCR and/or ECR |
+| `_build-push-helm-charts.yaml` | Package and push Helm chart to GHCR and/or ECR |
+
+Trigger workflows:
+
 | Workflow | Trigger | Purpose |
 |----------|---------|---------|
-| `ci-app.yaml` | `workflow_call` | Lint, type-check, migrate, test, upload coverage artifact |
-| `build-push-docker-images.yaml` | `workflow_call` | Build and push Docker images (`runtime` + `migrations` targets) to GHCR and/or ECR |
-| `build-push-helm-charts.yaml` | `workflow_call` | Package and push Helm chart to GHCR and/or ECR |
-| `main-build-push-docker-images.yaml` | push to `main` (app paths) | Calls `build-push-docker-images.yaml` with `["ghcr", "ecr"]` |
-| `main-build-push-helm-charts.yaml` | push to `main` (`k8s/helm/charts/**`) | Calls `build-push-helm-charts.yaml` with `["ghcr", "ecr"]` |
-| `app-docs.yaml` | push to `main` (`app/docs/**`, `mkdocs.yml`) | Deploys MkDocs docs to GitHub Pages via `mkdocs gh-deploy --force` |
-| `release-please.yaml` | push to `main` | Opens versioned release PRs via release-please |
+| `pr-ci.yaml` | pull request to `main` | Detects changed paths and calls relevant reusable CI workflows; final validate job gates merge |
+| `main-docker.yaml` | push to `main` or `app/v*.*.*` tags | Calls `_build-push-docker-images.yaml` with `["ghcr", "ecr"]` |
+| `main-helm.yaml` | push to `main` or `chart/v*.*.*` tags | Calls `_build-push-helm-charts.yaml` with `["ghcr", "ecr"]` |
+| `main-docs.yaml` | push to `main` (`app/docs/**`, `mkdocs.yml`) | Deploys MkDocs docs to GitHub Pages via `mkdocs gh-deploy --force` |
+| `manual-infrastructure-apply.yaml` | `workflow_dispatch` (apply/update) | Runs `terraform apply`; on `apply` also builds and pushes Docker images and Helm chart |
+| `manual-infrastructure-destroy.yaml` | `workflow_dispatch` | Runs `terraform destroy` |
+| `release-please.yaml` | push to `main` (`app/**`, `k8s/helm/charts/**`) | Opens versioned release PRs via release-please |
 
 The Python version used in CI is controlled by the `PYTHON_VERSION` repository variable (`vars.PYTHON_VERSION`).
 
