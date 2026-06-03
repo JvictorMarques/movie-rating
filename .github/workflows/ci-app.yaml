@@ -28,7 +28,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.3
 
       - name: Set up uv
         uses: astral-sh/setup-uv@v8.1.0
@@ -54,7 +54,7 @@ jobs:
       - name: Run tests
         run: uv run task test
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@v7.0.1
         with:
           name: coverage-report
           path: app/htmlcov/

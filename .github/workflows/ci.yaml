@@ -15,7 +15,7 @@ jobs:
       docker: ${{ steps.changes.outputs.docker }}
       terraform: ${{ steps.changes.outputs.terraform }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.3
       - name: Paths Changes Filter
         id: changes
         uses: dorny/paths-filter@v4.0.1
