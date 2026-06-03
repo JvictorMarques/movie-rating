@@ -1,5 +1,5 @@
 run-name: "Check for new version @${{ github.actor }} #${{ github.run_number }}"
-name: Check for new version
+name: Release Please
 
 on:
   push:
@@ -19,9 +19,11 @@ permissions:
 
 jobs:
   release-please:
+    name: Run release-please
     runs-on: ubuntu-latest
     steps:
-      - uses: googleapis/release-please-action@v5.0.0
+      - name: Run release-please
+        uses: googleapis/release-please-action@v5.0.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           config-file: release-please-config.json
