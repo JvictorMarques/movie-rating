@@ -91,6 +91,9 @@ jobs:
     name: Deploy app-of-apps to Kubernetes
     needs: [terraform, docker, helm]
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     defaults:
       run:
         working-directory: k8s/env/aws
