@@ -196,7 +196,7 @@ Current versions are stored in `.release-please-manifest.json`. Both packages sh
 | `build-push-helm-charts.yaml` | `workflow_call` | Package and push Helm chart to GHCR and/or ECR |
 | `main-build-push-docker-images.yaml` | push to `main` (app paths) | Calls `build-push-docker-images.yaml` with `["ghcr", "ecr"]` |
 | `main-build-push-helm-charts.yaml` | push to `main` (`k8s/helm/charts/**`) | Calls `build-push-helm-charts.yaml` with `["ghcr", "ecr"]` |
-| `app-docs.yaml` | push to `main` (`app/docs/**`, `mkdocs.yml`) | Deploys MkDocs docs to GitHub Pages via `mkdocs gh-deploy` |
+| `app-docs.yaml` | push to `main` (`app/docs/**`, `mkdocs.yml`) | Deploys MkDocs docs to GitHub Pages via `mkdocs gh-deploy --force` |
 | `release-please.yaml` | push to `main` | Opens versioned release PRs via release-please |
 
 The Python version used in CI is controlled by the `PYTHON_VERSION` repository variable (`vars.PYTHON_VERSION`).
