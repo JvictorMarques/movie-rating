@@ -1,8 +1,6 @@
 name: Build and Push Helm Charts
 on:
   push:
-    branches:
-      - main
     tags:
       - 'chart/v*.*.*'
 
