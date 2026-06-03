@@ -11,7 +11,7 @@ on:
 jobs:
   upload-docs:
     environment:
-      name: github-pages
+      name: docs
       url: https://jvictormarques.github.io/movie-rating/
     runs-on: ubuntu-latest
     permissions:
