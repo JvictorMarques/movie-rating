@@ -1,0 +1,19 @@
+name: Dockerfile CI
+on:
+  workflow_call:
+
+jobs:
+  dockerfile:
+    name: Dockerfile CI
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6.0.3
+
+      - name: Lint Dockerfile
+        uses: hadolint/hadolint-action@v3.3.0
+        with:
+          dockerfile: app/Dockerfile
