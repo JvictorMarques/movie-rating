@@ -9,7 +9,6 @@ jobs:
       run:
         working-directory: app
     env:
-      PYTHON_VERSION: 3.13
       DB_USER: admin
       DB_PASSWORD: admin
       DB_DATABASE: movie_rating
@@ -34,7 +33,7 @@ jobs:
         uses: astral-sh/setup-uv@v8.1.0
         with:
           enable-cache: true
-          python-version: ${{ env.PYTHON_VERSION }}
+          python-version: ${{ vars.PYTHON_VERSION }}
 
       - name: Install dependencies
         run: uv sync --frozen

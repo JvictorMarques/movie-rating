@@ -1,0 +1,35 @@
+name: Upload App Documentation
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'app/docs/**'
+      - 'mkdocs.yml'
+
+jobs:
+  upload-docs:
+    environment:
+      name: github-pages
+      url: https://jvictormarques.github.io/movie-rating/
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: app
+    steps:
+        - name: Checkout code
+          uses: actions/checkout@v6.0.3
+
+        - name: Set up uv
+          uses: astral-sh/setup-uv@v8.1.0
+          with:
+            enable-cache: true
+            python-version: ${{ vars.PYTHON_VERSION }}
+
+        - name: Install dependencies
+          run: uv sync --frozen
+
+        - name: Upload the docs
+          run: uv run mkdocs gh-deploy
