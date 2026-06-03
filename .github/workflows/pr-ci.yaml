@@ -1,0 +1,82 @@
+run-name: CI triggered by ${{ github.actor }} on ${{ github.head_ref }}
+name: Run CI
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  changes:
+    name: Detect changed paths
+    permissions:
+      contents: read
+      pull-requests: read
+    runs-on: ubuntu-latest
+    outputs:
+      app: ${{ steps.changes.outputs.app }}
+      docker: ${{ steps.changes.outputs.docker }}
+      terraform: ${{ steps.changes.outputs.terraform }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6.0.3
+      - name: Detect changed paths
+        id: changes
+        uses: dorny/paths-filter@v4.0.1
+        with:
+          filters: |
+            app:
+              - 'app/app.py'
+              - 'app/pyproject.toml'
+              - 'app/*.lock'
+              - 'app/src/**'
+              - 'app/tests/**'
+              - 'app/alembic.ini'
+              - 'app/migrations/**'
+            docker:
+              - 'app/Dockerfile'
+              - 'app/.dockerignore'
+            terraform:
+              - 'terraform/**'
+
+  app:
+    name: Application CI
+    needs: changes
+    if: needs.changes.outputs.app == 'true'
+    uses: ./.github/workflows/_ci-app.yaml
+
+  docker:
+    name: Dockerfile CI
+    needs: changes
+    if: needs.changes.outputs.docker == 'true'
+    uses: ./.github/workflows/_ci-docker.yaml
+
+  terraform:
+    name: Terraform CI
+    needs: changes
+    if: needs.changes.outputs.terraform == 'true'
+    permissions:
+      contents: read
+      id-token: write
+      pull-requests: write
+    uses: ./.github/workflows/_ci-terraform.yaml
+    secrets:
+      AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+
+  validate:
+    name: Validate all checks
+    needs: [app, docker, terraform]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: All checks passed or skipped
+        run: |
+          declare -A results
+          results[app]="${{ needs.app.result }}"
+          results[docker]="${{ needs.docker.result }}"
+          results[terraform]="${{ needs.terraform.result }}"
+
+          for job in ${!results[@]}; do
+            if [[ ${results[$job]} == "failure" ]]; then
+              echo "::error:: Job '$job' failed."
+              exit 1
+            fi
+          done
