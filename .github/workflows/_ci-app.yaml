@@ -1,0 +1,63 @@
+name: Application CI
+on:
+  workflow_call:
+
+jobs:
+  app:
+    name: Application CI
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    env:
+      DB_USER: admin
+      DB_PASSWORD: admin
+      DB_DATABASE: movie_rating
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: ${{ env.DB_USER }}
+          POSTGRES_PASSWORD: ${{ env.DB_PASSWORD }}
+          POSTGRES_DB: ${{ env.DB_DATABASE }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6.0.3
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v8.1.0
+        with:
+          enable-cache: true
+          python-version: ${{ vars.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Run linter
+        run: uv run task lint
+
+      - name: Run static type checker
+        run: uv run task mypy
+
+      - name: Run migrations
+        env:
+          DB_PORT: 5432
+          DB_ADDRESS: localhost
+        run: uv run alembic upgrade head
+
+      - name: Run tests
+        run: uv run task test
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: coverage-report
+          path: app/htmlcov/
+          retention-days: 1
