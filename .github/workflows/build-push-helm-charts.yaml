@@ -82,7 +82,7 @@ jobs:
           }
 
           function ecr_registry() {
-            local repo="${{ inputs.ecr_repository_name }}"
+            local repo="$(echo ${{ inputs.ecr_repository_name }} | cut -d '/' -f1)"
             echo "oci://${{ env.ECR_REGISTRY }}/$repo"
           }
 
