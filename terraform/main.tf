@@ -1,7 +1,7 @@
 module "vpc" {
   source       = "./modules/vpc"
   project_name = var.project_name
-  cluster_name = "${var.project_name}-cluster"
+  cluster_name = var.eks_cluster_name
   subnets_azs  = var.subnets_azs
 }
 
@@ -54,7 +54,7 @@ module "ssm" {
 
 module "eks_cluster" {
   source             = "./modules/eks"
-  project_name       = var.project_name
+  cluster_name       = var.eks_cluster_name
   kubernetes_version = var.eks_version
   private_subnet_ids = module.vpc.private_subnet_ids
 }
