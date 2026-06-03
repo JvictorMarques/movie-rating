@@ -1,29 +1,31 @@
-  apiVersion: argoproj.io/v1alpha1
-  kind: Application
-  metadata:
-    name: movie-rating
-    namespace: argocd
-    annotations:
-      argocd.argoproj.io/sync-wave: "2"
-  spec:
-    project: default
-    sources:
-    - repoURL: https://github.com/JvictorMarques/movie_rating
-      targetRevision: HEAD
-      path: k8s/helm/charts/movie-rating
-      helm:
-        releaseName: movie-rating
-        valueFiles:
-          - $values/k8s/env/aws/values/movie-rating.yaml
-    - repoURL: https://github.com/JvictorMarques/movie_rating
-      targetRevision: HEAD
-      ref: values
-    destination:
-      namespace: movie-rating
-      server: https://kubernetes.default.svc
-    syncPolicy:
-      automated:
-        prune: true
-        selfHeal: true
-      syncOptions:
-        - CreateNamespace=true
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: movie-rating
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  sources:
+  - repoURL: https://github.com/JvictorMarques/movie_rating
+    targetRevision: HEAD
+    path: k8s/helm/charts/movie-rating
+    helm:
+      releaseName: movie-rating
+      valueFiles:
+        - $values/k8s/env/aws/values/movie-rating.yaml
+  - repoURL: https://github.com/JvictorMarques/movie_rating
+    targetRevision: HEAD
+    ref: values
+  destination:
+    namespace: movie-rating
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

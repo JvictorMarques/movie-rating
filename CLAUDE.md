@@ -207,13 +207,15 @@ Trigger workflows:
 | `main-docker.yaml` | push to `main` or `app/v*.*.*` tags | Calls `_build-push-docker-images.yaml` with `["ghcr", "ecr"]` |
 | `main-helm.yaml` | push to `main` or `chart/v*.*.*` tags | Calls `_build-push-helm-charts.yaml` with `["ghcr", "ecr"]` |
 | `main-docs.yaml` | push to `main` (`app/docs/**`, `mkdocs.yml`) | Deploys MkDocs docs to GitHub Pages via `mkdocs gh-deploy --force` |
-| `manual-infrastructure-apply.yaml` | `workflow_dispatch` (apply/update) | Runs `terraform apply`; on `apply` also builds and pushes Docker images and Helm chart |
-| `manual-infrastructure-destroy.yaml` | `workflow_dispatch` | Runs `terraform destroy` |
+| `manual-infrastructure-apply.yaml` | `workflow_dispatch` (apply/update) | Runs `terraform apply`; on `apply` also builds and pushes Docker images and Helm chart, then deploys the ArgoCD App of Apps via `kubectl apply` |
+| `manual-infrastructure-destroy.yaml` | `workflow_dispatch` | Removes the ArgoCD App of Apps via `kubectl delete`, then runs `terraform destroy` |
 | `release-please.yaml` | push to `main` (`app/**`, `k8s/helm/charts/**`) | Opens versioned release PRs via release-please |
 
 The Python version used in CI is controlled by the `PYTHON_VERSION` repository variable (`vars.PYTHON_VERSION`).
 
 **ECR repositories** — the `ecr` Terraform module is invoked with `count` over the `ecr_repository_name` list variable (default: `movie-rating`, `movie-rating-helm-chart`). To add a new repo, append its name to the list in `terraform/variables.tf`. The migrations image is pushed to the application repository using a `migrations-<version>` tag rather than a separate ECR repo.
+
+**EKS cluster name** — controlled by the `eks_cluster_name` Terraform variable (default: `movie-rating-cluster`). In CI it is set via the `EKS_CLUSTER_NAME` repository variable (`vars.EKS_CLUSTER_NAME`). The EKS module no longer derives the cluster name from `project_name`.
 
 **AWS build script** — `scripts/aws/build.sh` builds both Docker images (runtime and migrations) and the Helm chart, then pushes them to ECR. Requires `--account-id`; optionally accepts `--region`, `--application-repository`, and `--helm-repository`.
 

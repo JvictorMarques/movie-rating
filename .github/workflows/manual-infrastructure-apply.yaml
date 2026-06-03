@@ -26,6 +26,7 @@ jobs:
         working-directory: terraform/
     env:
       TF_VAR_ecr_repository_name: '["${{ vars.ECR_DOCKER_REGISTRY }}", "${{ vars.ECR_HELM_REGISTRY }}"]'
+      TF_VAR_eks_cluster_name: ${{ vars.EKS_CLUSTER_NAME }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v6.0.3
@@ -84,3 +85,28 @@ jobs:
     secrets:
       AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+
+  app:
+    if: ${{ inputs.action == 'apply' }}
+    name: Deploy app-of-apps to Kubernetes
+    needs: [terraform, docker, helm]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: k8s/env/aws
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6.2.0
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig \
+          --name ${{ vars.EKS_CLUSTER_NAME }} \
+          --region ${{ vars.AWS_REGION }}
+
+      - name: Deploy app-of-apps
+        run: |
+          kubectl apply -f main.yaml
