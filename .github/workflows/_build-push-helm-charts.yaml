@@ -69,7 +69,9 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
 
       - name: Verify ECR repository
+        id: verify_ecr
         if: ${{ matrix.registry == 'ecr' }}
+        continue-on-error: true
         run: |
           aws ecr describe-repositories \
             --repository-names ${{ inputs.ecr_repository_name }} \
@@ -94,7 +96,7 @@ jobs:
           fi
 
       - name: Login to ECR
-        if: ${{ matrix.registry == 'ecr' }}
+        if: ${{ matrix.registry == 'ecr' && steps.verify_ecr.outcome == 'success' }}
         run: |
           aws ecr get-login-password \
             --region ${{ vars.AWS_REGION }} | \
@@ -111,5 +113,6 @@ jobs:
           helm package charts/movie-rating --destination ./packages
 
       - name: Push chart to registry
+        if: ${{ matrix.registry != 'ecr' || steps.verify_ecr.outcome == 'success' }}
         run: |
           helm push ./packages/*.tgz ${{ env.REGISTRY }}
