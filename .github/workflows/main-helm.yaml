@@ -1,0 +1,22 @@
+name: Build and Push Helm Charts
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'chart/v*.*.*'
+
+jobs:
+  build-and-push:
+    name: Build and push Helm chart
+    permissions:
+      contents: read
+      id-token: write
+      packages: write
+    uses: ./.github/workflows/_build-push-helm-charts.yaml
+    with:
+      registry: '["ghcr", "ecr"]'
+      ecr_repository_name: ${{ vars.ECR_HELM_REGISTRY }}
+    secrets:
+      AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
