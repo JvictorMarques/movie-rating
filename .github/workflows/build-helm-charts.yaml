@@ -36,7 +36,7 @@ jobs:
     env:
       ECR_REGISTRY: ${{ secrets.ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.3
 
       - name: Validate registry input
         run: |
@@ -57,7 +57,7 @@ jobs:
 
       - name: Configure AWS credentials
         if: ${{ matrix.registry == 'ecr' }}
-        uses: aws-actions/configure-aws-credentials@v6
+        uses: aws-actions/configure-aws-credentials@v6.2.0
         with:
           aws-region: ${{ vars.AWS_REGION }}
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
