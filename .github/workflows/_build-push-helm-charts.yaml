@@ -1,0 +1,115 @@
+name: Build and Push Helm Charts
+on:
+  workflow_call:
+    inputs:
+      registry:
+        description: 'JSON array of registries, e.g. ''["ghcr", "ecr"]'' or ''["ghcr"]'''
+        required: true
+        type: string
+      ecr_repository_name:
+        description: 'Repository name for ECR (without registry prefix), e.g. ''helm-chart/movie-rating'''
+        required: true
+        type: string
+    secrets:
+      AWS_ROLE_TO_ASSUME:
+        description: 'AWS IAM Role ARN to assume for ECR access'
+        required: true
+      ACCOUNT_ID:
+        description: 'AWS Account ID for ECR'
+        required: true
+
+concurrency:
+  group: 'helm-chart-build-push'
+  cancel-in-progress: true
+
+jobs:
+  build-push:
+    name: Push to ${{ matrix.registry }}
+    permissions:
+      contents: read
+      id-token: write
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        registry: ${{ fromJson(inputs.registry) }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: k8s/helm
+    env:
+      HELM_VERSION: v4.2.0
+      ECR_REGISTRY: ${{ secrets.ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6.0.3
+
+      - name: Validate registry input
+        run: |
+          if [[ "${{ matrix.registry }}" != "ghcr" && "${{ matrix.registry }}" != "ecr" ]]; then
+            echo "Invalid registry: ${{ matrix.registry }}. Must be 'ghcr' or 'ecr'."
+            exit 1
+          fi
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v5.0.0
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - name: Login to GHCR
+        if: ${{ matrix.registry == 'ghcr' }}
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Configure AWS credentials
+        if: ${{ matrix.registry == 'ecr' }}
+        uses: aws-actions/configure-aws-credentials@v6.2.0
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+
+      - name: Verify ECR repository
+        if: ${{ matrix.registry == 'ecr' }}
+        run: |
+          aws ecr describe-repositories \
+            --repository-names ${{ inputs.ecr_repository_name }} \
+            --no-cli-pager
+
+      - name: Set registry repository
+        run: |
+          function ghcr_registry() {
+            local repo="$(echo ${{ github.repository_owner }}/helm-chart | tr '[:upper:]' '[:lower:]')"
+            echo "oci://ghcr.io/$repo"
+          }
+
+          function ecr_registry() {
+            local repo="$(echo ${{ inputs.ecr_repository_name }} | cut -d '/' -f1)"
+            echo "oci://${{ env.ECR_REGISTRY }}/$repo"
+          }
+
+          if [ "${{ matrix.registry }}" = "ecr" ]; then
+            echo "REGISTRY=$(ecr_registry)" >> $GITHUB_ENV
+          else
+            echo "REGISTRY=$(ghcr_registry)" >> $GITHUB_ENV
+          fi
+
+      - name: Login to ECR
+        if: ${{ matrix.registry == 'ecr' }}
+        run: |
+          aws ecr get-login-password \
+            --region ${{ vars.AWS_REGION }} | \
+              helm registry login --username AWS --password-stdin ${{ env.ECR_REGISTRY }}
+
+      - name: Add Helm repository
+        run: |
+            helm repo add bitnami https://charts.bitnami.com/bitnami
+            helm repo update
+
+      - name: Package chart
+        run: |
+          helm dependency update charts/movie-rating
+          helm package charts/movie-rating --destination ./packages
+
+      - name: Push chart to registry
+        run: |
+          helm push ./packages/*.tgz ${{ env.REGISTRY }}
