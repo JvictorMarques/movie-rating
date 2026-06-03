@@ -187,6 +187,20 @@ Two packages are tracked independently in `release-please-config.json`:
 
 Current versions are stored in `.release-please-manifest.json`. Both packages share `CHANGELOG.md` at the repo root.
 
+**CI/CD workflows** — `.github/workflows/` contains the following workflows:
+
+| Workflow | Trigger | Purpose |
+|----------|---------|---------|
+| `ci-app.yaml` | `workflow_call` | Lint, type-check, migrate, test, upload coverage artifact |
+| `build-push-docker-images.yaml` | `workflow_call` | Build and push Docker images (`runtime` + `migrations` targets) to GHCR and/or ECR |
+| `build-push-helm-charts.yaml` | `workflow_call` | Package and push Helm chart to GHCR and/or ECR |
+| `main-build-push-docker-images.yaml` | push to `main` (app paths) | Calls `build-push-docker-images.yaml` with `["ghcr", "ecr"]` |
+| `main-build-push-helm-charts.yaml` | push to `main` (`k8s/helm/charts/**`) | Calls `build-push-helm-charts.yaml` with `["ghcr", "ecr"]` |
+| `app-docs.yaml` | push to `main` (`app/docs/**`, `mkdocs.yml`) | Deploys MkDocs docs to GitHub Pages via `mkdocs gh-deploy` |
+| `release-please.yaml` | push to `main` | Opens versioned release PRs via release-please |
+
+The Python version used in CI is controlled by the `PYTHON_VERSION` repository variable (`vars.PYTHON_VERSION`).
+
 **ECR repositories** — the `ecr` Terraform module is invoked with `count` over the `ecr_repository_name` list variable (default: `movie-rating`, `movie-rating-helm-chart`). To add a new repo, append its name to the list in `terraform/variables.tf`. The migrations image is pushed to the application repository using a `migrations-<version>` tag rather than a separate ECR repo.
 
 **AWS build script** — `scripts/aws/build.sh` builds both Docker images (runtime and migrations) and the Helm chart, then pushes them to ECR. Requires `--account-id`; optionally accepts `--region`, `--application-repository`, and `--helm-repository`.
