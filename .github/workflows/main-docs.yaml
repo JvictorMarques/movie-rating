@@ -1,3 +1,4 @@
+run-name: 'Deploy App Documentation #${{ github.run_number}}'
 name: Deploy App Documentation
 on:
   workflow_dispatch:
