@@ -72,7 +72,7 @@ cd movie-rating
 ### 2. Enter the application directory and install dependencies
 
 ```bash
-cd movie-rating/app
+cd app
 uv sync
 ```
 
@@ -138,17 +138,19 @@ Deploys the full application on a local [kind](https://kind.sigs.k8s.io/) cluste
 
 ```bash
 # Create the cluster
-kind create cluster --config k8s/env/local/setup/kind-config.yaml
+kind create cluster --name movie-rating --config k8s/env/local/setup/kind-config.yaml
 
-# Build and load images
+# Build and load images (both targets share the movie-rating image name;
+# the Helm chart renders the migrations image as movie-rating:migrations-<version>)
 docker build --target runtime -t movie-rating:latest app/
-docker build --target migrations -t movie-rating-migrations:latest app/
-kind load docker-image movie-rating:latest
-kind load docker-image movie-rating-migrations:latest
+docker build --target migrations -t movie-rating:migrations-latest app/
+kind load docker-image movie-rating:latest --name movie-rating
+kind load docker-image movie-rating:migrations-latest --name movie-rating
 
-# Install ArgoCD and bootstrap the App of Apps
-kubectl create namespace argocd
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+# Add the Argo Helm repo, install ArgoCD, and bootstrap the App of Apps
+helm repo add argo https://argoproj.github.io/argo-helm
+helm upgrade --install --create-namespace --namespace argocd argocd argo/argo-cd \
+  --version 9.5.15 -f k8s/env/local/values/argocd.yaml
 kubectl wait --for=condition=available --timeout=120s deployment/argocd-server -n argocd
 kubectl apply -f k8s/env/local/main.yaml
 
@@ -426,15 +428,9 @@ k8s/
 │   └── aws/                              # AWS (EKS) environment
 │       ├── main.yaml                     # ArgoCD App of Apps — bootstraps the AWS cluster
 │       ├── argo/
-│       │   ├── apps.yaml
-│       │   └── movie-rating.yaml
-│       └── values/                       # Helm values per release (AWS)
-│           ├── argocd.yaml
-│           ├── aws-load-balancer-controller.yaml
-│           ├── cluster-autoscaler.yaml
-│           ├── external-secrets.yaml
-│           ├── metrics-server.yaml
-│           └── movie-rating.yaml
+│       │   └── movie-rating.yaml         # ArgoCD Application for the app chart
+│       └── values/
+│           └── movie-rating.yaml         # Helm values for the app chart
 └── helm/
     └── charts/
         └── movie-rating/                 # Application Helm chart
@@ -477,7 +473,7 @@ If you prefer to run the steps manually, follow sections 1–5 below.
 ### 1. Create the kind cluster
 
 ```bash
-kind create cluster --config k8s/env/local/setup/kind-config.yaml
+kind create cluster --name movie-rating --config k8s/env/local/setup/kind-config.yaml
 ```
 
 ### 2. Build the Docker images
@@ -499,8 +495,8 @@ spec:
             version: 1.0.0         # must match the tag used below
         migrations:
           image:
-            tag: movie-rating-migrations
-            version: 1.0.0         # must match the tag used below
+            tag: movie-rating      # same image name — Helm prepends "migrations-" to the version
+            version: 1.0.0         # must match the tag used below → final: movie-rating:migrations-1.0.0
 ```
 
 Then build the images using the same tag:
@@ -510,7 +506,8 @@ Then build the images using the same tag:
 docker build --target runtime -t movie-rating:1.0.0 app/
 
 # Migrations image — used by the migrations Job
-docker build --target migrations -t movie-rating-migrations:1.0.0 app/
+# The Helm chart renders: {{ tag }}:migrations-{{ version }}, so the image must be tagged accordingly
+docker build --target migrations -t movie-rating:migrations-1.0.0 app/
 ```
 
 ### 3. Load the images into kind
@@ -518,8 +515,8 @@ docker build --target migrations -t movie-rating-migrations:1.0.0 app/
 kind clusters use their own container runtime, so images must be loaded explicitly:
 
 ```bash
-kind load docker-image movie-rating:1.0.0
-kind load docker-image movie-rating-migrations:1.0.0
+kind load docker-image movie-rating:1.0.0 --name movie-rating
+kind load docker-image movie-rating:migrations-1.0.0 --name movie-rating
 ```
 
 ### 4. Deploy with ArgoCD
@@ -527,6 +524,7 @@ kind load docker-image movie-rating-migrations:1.0.0
 Install ArgoCD into the cluster and apply the App of Apps manifest. ArgoCD will then automatically sync all releases from the repository.
 
 ```bash
+helm repo add argo https://argoproj.github.io/argo-helm
 helm upgrade --install --create-namespace --namespace argocd argocd argo/argo-cd \
   --version 9.5.15 -f k8s/env/local/values/argocd.yaml
 kubectl wait --for=condition=available --timeout=120s deployment/argocd-server -n argocd
@@ -573,8 +571,8 @@ The API will then be available at `http://movie-rating.local.com/api/v1/`.
 | `app.ingress.enabled` | `true` | Whether to render the Ingress resource |
 | `app.ingress.host` | `movie-rating.local.com` | Ingress hostname |
 | `app.ingress.className` | `kong` | Ingress class (`kong` locally, `alb` on AWS) |
-| `migrations.image.tag` | `movie-rating-migrations` | Migrations image repository name or ECR URI |
-| `migrations.image.version` | `1.0.0` | Migrations image tag |
+| `migrations.image.tag` | `movie-rating-migrations` | Image name or ECR URI for the migrations Job. The final image is `<tag>:migrations-<version>` — override to `movie-rating` (local) or the ECR URI (AWS) |
+| `migrations.image.version` | `1.0.0` | Version portion of the migrations tag; combined as `migrations-<version>` |
 | `otlp.endpoint` | (otel-collector cluster DNS) | OTLP gRPC endpoint injected into the app Secret |
 | `secretStore.name` | `aws-ssm` | Name of the `SecretStore` resource (AWS only) |
 | `secretStore.region` | `us-east-1` | AWS region for SSM Parameter Store (AWS only) |
@@ -584,13 +582,13 @@ The API will then be available at `http://movie-rating.local.com/api/v1/`.
 When `local.enabled: false`, the chart targets an AWS EKS cluster and switches from local resources to AWS-managed ones:
 
 - **PostgreSQL** — the Bitnami subchart is disabled; the app connects to an RDS instance provisioned by the Terraform `rds` module
-- **Secrets** — instead of a plain Kubernetes `Secret`, the chart renders an `ExternalSecret` for both the app and the migrations Job. The External Secrets Operator (installed via the `eks-pod-identities` Terraform module) syncs credentials from AWS SSM Parameter Store into the cluster
+- **Secrets** — instead of a plain Kubernetes `Secret`, the chart renders an `ExternalSecret` for both the app and the migrations Job. The External Secrets Operator (installed via the `eks-helm-releases` Terraform module) syncs credentials from AWS SSM Parameter Store into the cluster
 - **SecretStore** — a `SecretStore` resource is created to point the External Secrets Operator at the correct SSM path and region. The `secretStore.name` and `secretStore.region` values are required when `local.enabled: false`
 - **Ingress** — `app.ingress.className` should be set to `alb`; the chart adds the ALB-specific annotations (`target-type: ip`, `scheme: internet-facing`, `healthcheck-path: /health`) automatically
 
 #### 1. Build and push images to ECR
 
-> **Note:** GitHub Actions CI runs on pull requests targeting `main`: app CI (lint, mypy, tests, coverage artifact), docker CI (hadolint), and terraform CI (fmt, validate, tflint). Image builds and pushes are not yet automated — build and push manually for now.
+> **Note:** Docker image builds and pushes to ECR are automated by GitHub Actions (`main-docker.yaml` on push to `main` or `app/v*.*.*` tags, and as part of the `manual-infrastructure-apply.yaml` deploy workflow). For manual builds, use `scripts/aws/build.sh` (requires `--account-id`; optionally accepts `--region`, `--application-repository`, and `--helm-repository`). To build and push manually:
 
 Build each image using the correct `--target` and push to your ECR repository. Follow the [AWS ECR push image guide](https://docs.aws.amazon.com/AmazonECR/latest/userguide/docker-push-ecr-image.html) for authentication and push steps — the only difference per image is the `--target` flag:
 
@@ -616,19 +614,16 @@ Edit `k8s/env/aws/values/movie-rating.yaml` and fill in the image URIs and secre
 
 #### 3. Deploy with ArgoCD
 
-Configure `kubectl` to point at the EKS cluster, then install ArgoCD and apply the AWS App of Apps manifest:
+ArgoCD and all cluster addons (AWS Load Balancer Controller, Cluster Autoscaler, External Secrets Operator, Metrics Server) are installed by the `eks-helm-releases` Terraform module — no manual Helm install needed. Once Terraform finishes, configure `kubectl` and apply the App of Apps manifest:
 
 ```bash
 aws eks update-kubeconfig --region <region> --name <cluster-name>
 
-helm upgrade --install --create-namespace --namespace argocd argocd argo/argo-cd \
-  --version 9.5.15 -f k8s/env/aws/values/argocd.yaml
-
-# Bootstrap — creates the App of Apps that manages all AWS releases
+# Bootstrap — ArgoCD App of Apps that manages the app chart
 kubectl apply -f k8s/env/aws/main.yaml
 ```
 
-ArgoCD will sync the full stack (ALB, External Secrets Operator, Cluster Autoscaler, observability, and movie-rating) from the repository automatically.
+ArgoCD will sync the movie-rating chart from the repository automatically. The full AWS infrastructure provisioning and app bootstrap is also available as a GitHub Actions workflow (`manual-infrastructure-apply.yaml`, `workflow_dispatch`).
 
 ---
 
@@ -638,18 +633,19 @@ The `terraform/` directory contains a modular Terraform configuration that provi
 
 ```text
 terraform/
-├── main.tf           # Root module — wires VPC, ECR, RDS, SSM, EKS, and pod identities together
+├── main.tf           # Root module — wires VPC, ECR, RDS, SSM, EKS, pod identities, and addon releases
 ├── providers.tf      # AWS and Helm provider configurations
 ├── versions.tf       # Terraform version and required_providers block
 ├── variables.tf      # Input variables (region, project name, DB config, EKS version, etc.)
 ├── terraform.tfvars  # Variable values (not committed — add to .gitignore)
 └── modules/
-    ├── vpc/                # VPC with public/private subnets, IGW, NAT gateway, route tables
-    ├── ecr/                # ECR repository for Docker images
-    ├── rds/                # RDS PostgreSQL + security group allowing EKS cluster access
-    ├── ssm/                # SSM Parameter Store — DB credentials and JWT secret
-    ├── eks/                # EKS cluster + managed node group + OIDC provider for IRSA
-    └── eks-pod-identities/ # IAM Pod Identities for LBC, Cluster Autoscaler, and External Secrets
+    ├── vpc/                    # VPC with public/private subnets, IGW, NAT gateway, route tables
+    ├── ecr/                    # ECR repository for Docker images
+    ├── rds/                    # RDS PostgreSQL + security group allowing EKS cluster access
+    ├── ssm/                    # SSM Parameter Store — DB credentials and JWT secret
+    ├── eks/                    # EKS cluster + managed node group + OIDC provider for IRSA
+    ├── eks-pod-identity-roles/ # IAM Pod Identity roles for LBC, Cluster Autoscaler, and External Secrets
+    └── eks-helm-releases/      # Helm releases for cluster addons (ArgoCD, LBC, Cluster Autoscaler, ESO, Metrics Server)
 ```
 
 ### Module overview
@@ -661,7 +657,8 @@ terraform/
 | `rds` | RDS PostgreSQL instance (private subnets, security group restricted to EKS cluster nodes) |
 | `ssm` | SSM SecureString parameters for DB credentials + auto-generated JWT secret (`random_password`) |
 | `eks` | EKS cluster + managed node group + OIDC provider (enables IRSA for add-ons) |
-| `eks-pod-identities` | IAM Pod Identities for AWS Load Balancer Controller, Cluster Autoscaler, and External Secrets Operator |
+| `eks-pod-identity-roles` | IAM Pod Identity roles for AWS Load Balancer Controller, Cluster Autoscaler, and External Secrets Operator |
+| `eks-helm-releases` | Installs cluster addons via Helm: ArgoCD, AWS Load Balancer Controller, Cluster Autoscaler, External Secrets Operator, Metrics Server |
 
 ### Usage
 
