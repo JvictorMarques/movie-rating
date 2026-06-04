@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+    <url>
+        <loc>https://jvictormarques.github.io/movie-rating/</loc>
+        <lastmod>2026-06-04</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en-US" href="https://jvictormarques.github.io/movie-rating/"/>
+        <xhtml:link rel="alternate" hreflang="pt-BR" href="https://jvictormarques.github.io/movie-rating/pt-BR/"/>
+    </url>
+    <url>
+        <loc>https://jvictormarques.github.io/movie-rating/api-reference/</loc>
+        <lastmod>2026-06-04</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en-US" href="https://jvictormarques.github.io/movie-rating/api-reference/"/>
+        <xhtml:link rel="alternate" hreflang="pt-BR" href="https://jvictormarques.github.io/movie-rating/pt-BR/api-reference/"/>
+    </url>
+    <url>
+        <loc>https://jvictormarques.github.io/movie-rating/architecture/</loc>
+        <lastmod>2026-06-04</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en-US" href="https://jvictormarques.github.io/movie-rating/architecture/"/>
+        <xhtml:link rel="alternate" hreflang="pt-BR" href="https://jvictormarques.github.io/movie-rating/pt-BR/architecture/"/>
+    </url>
+    <url>
+        <loc>https://jvictormarques.github.io/movie-rating/authentication/</loc>
+        <lastmod>2026-06-04</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en-US" href="https://jvictormarques.github.io/movie-rating/authentication/"/>
+        <xhtml:link rel="alternate" hreflang="pt-BR" href="https://jvictormarques.github.io/movie-rating/pt-BR/authentication/"/>
+    </url>
+    <url>
+        <loc>https://jvictormarques.github.io/movie-rating/database/</loc>
+        <lastmod>2026-06-04</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en-US" href="https://jvictormarques.github.io/movie-rating/database/"/>
+        <xhtml:link rel="alternate" hreflang="pt-BR" href="https://jvictormarques.github.io/movie-rating/pt-BR/database/"/>
+    </url>
+    <url>
+        <loc>https://jvictormarques.github.io/movie-rating/getting-started/</loc>
+        <lastmod>2026-06-04</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en-US" href="https://jvictormarques.github.io/movie-rating/getting-started/"/>
+        <xhtml:link rel="alternate" hreflang="pt-BR" href="https://jvictormarques.github.io/movie-rating/pt-BR/getting-started/"/>
+    </url>
+    <url>
+        <loc>https://jvictormarques.github.io/movie-rating/pt-BR/</loc>
+        <lastmod>2026-06-04</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="pt-BR" href="https://jvictormarques.github.io/movie-rating/pt-BR/"/>
+        <xhtml:link rel="alternate" hreflang="en-US" href="https://jvictormarques.github.io/movie-rating/"/>
+    </url>
+    <url>
+        <loc>https://jvictormarques.github.io/movie-rating/pt-BR/api-reference/</loc>
+        <lastmod>2026-06-04</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="pt-BR" href="https://jvictormarques.github.io/movie-rating/pt-BR/api-reference/"/>
+        <xhtml:link rel="alternate" hreflang="en-US" href="https://jvictormarques.github.io/movie-rating/api-reference/"/>
+    </url>
+    <url>
+        <loc>https://jvictormarques.github.io/movie-rating/pt-BR/architecture/</loc>
+        <lastmod>2026-06-04</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="pt-BR" href="https://jvictormarques.github.io/movie-rating/pt-BR/architecture/"/>
+        <xhtml:link rel="alternate" hreflang="en-US" href="https://jvictormarques.github.io/movie-rating/architecture/"/>
+    </url>
+    <url>
+        <loc>https://jvictormarques.github.io/movie-rating/pt-BR/authentication/</loc>
+        <lastmod>2026-06-04</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="pt-BR" href="https://jvictormarques.github.io/movie-rating/pt-BR/authentication/"/>
+        <xhtml:link rel="alternate" hreflang="en-US" href="https://jvictormarques.github.io/movie-rating/authentication/"/>
+    </url>
+    <url>
+        <loc>https://jvictormarques.github.io/movie-rating/pt-BR/database/</loc>
+        <lastmod>2026-06-04</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="pt-BR" href="https://jvictormarques.github.io/movie-rating/pt-BR/database/"/>
+        <xhtml:link rel="alternate" hreflang="en-US" href="https://jvictormarques.github.io/movie-rating/database/"/>
+    </url>
+    <url>
+        <loc>https://jvictormarques.github.io/movie-rating/pt-BR/getting-started/</loc>
+        <lastmod>2026-06-04</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="pt-BR" href="https://jvictormarques.github.io/movie-rating/pt-BR/getting-started/"/>
+        <xhtml:link rel="alternate" hreflang="en-US" href="https://jvictormarques.github.io/movie-rating/getting-started/"/>
+    </url>
+</urlset>
