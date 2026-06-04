@@ -1,6 +1,7 @@
 site_name: Movie Rating
 site_description: A movie rating API built with FastAPI
 site_author: Jvictor
+site_url: https://jvictormarques.github.io/movie-rating/
 
 theme:
   name: material
@@ -8,10 +9,6 @@ theme:
   icon:
     logo: material/movie-open
   palette:
-    - media: "(prefers-color-scheme)"
-      toggle:
-        icon: material/lightbulb-auto
-        name: Switch to light mode
     - media: "(prefers-color-scheme: light)"
       scheme: default
       primary: teal
@@ -25,7 +22,7 @@ theme:
       accent: amber
       toggle:
         icon: material/lightbulb-outline
-        name: Switch to system preference
+        name: Switch to light mode
   font:
     text: Roboto
     code: Roboto Mono
@@ -43,10 +40,10 @@ extra_css:
 extra:
   alternate:
     - name: English
-      link: /
+      link: /movie-rating/
       lang: en
     - name: Português (BR)
-      link: /pt-BR/
+      link: /movie-rating/pt-BR/
       lang: pt-BR
 
 nav:
