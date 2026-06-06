@@ -13,13 +13,13 @@
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.47.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.49.0 |
 
 ## Modules
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_addons"></a> [addons](#module\_addons) | ./modules/eks-helm-releases | n/a |
+| <a name="module_addons"></a> [addons](#module\_addons) | ./modules/eks-addons | n/a |
 | <a name="module_ecr"></a> [ecr](#module\_ecr) | ./modules/ecr | n/a |
 | <a name="module_eks_cluster"></a> [eks\_cluster](#module\_eks\_cluster) | ./modules/eks | n/a |
 | <a name="module_eks_pod_identities"></a> [eks\_pod\_identities](#module\_eks\_pod\_identities) | ./modules/eks-pod-identity-roles | n/a |
