@@ -8,6 +8,7 @@
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.15.0 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 6.45 |
 | <a name="requirement_helm"></a> [helm](#requirement\_helm) | ~> 3.1 |
+| <a name="requirement_kubernetes"></a> [kubernetes](#requirement\_kubernetes) | ~> 3.2 |
 
 ## Providers
 
@@ -15,6 +16,7 @@
 |------|---------|
 | <a name="provider_aws"></a> [aws](#provider\_aws) | 6.49.0 |
 | <a name="provider_helm"></a> [helm](#provider\_helm) | 3.1.2 |
+| <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 3.2.0 |
 
 ## Modules
 
@@ -30,6 +32,7 @@ No modules.
 | [helm_release.cluster_autoscaler](https://registry.terraform.io/providers/hashicorp/helm/latest/docs/resources/release) | resource |
 | [helm_release.external_secrets](https://registry.terraform.io/providers/hashicorp/helm/latest/docs/resources/release) | resource |
 | [helm_release.metrics_server](https://registry.terraform.io/providers/hashicorp/helm/latest/docs/resources/release) | resource |
+| [kubernetes_storage_class_v1.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/storage_class_v1) | resource |
 
 ## Inputs
 

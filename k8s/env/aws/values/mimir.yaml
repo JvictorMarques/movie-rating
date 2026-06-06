@@ -48,3 +48,11 @@ memcached:
 
 memcachedExporter:
   enabled: false
+
+kafka:
+  persistence:
+    storageClass: gp3
+
+minio:
+  persistence:
+    storageClass: gp3

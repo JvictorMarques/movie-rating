@@ -18,6 +18,8 @@ deploymentMode: SingleBinary
 
 singleBinary:
   replicas: 1
+  persistence:
+    storageClass: gp3
 
 backend:
   replicas: 0
