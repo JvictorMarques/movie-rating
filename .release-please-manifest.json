@@ -1,4 +1,4 @@
 {
-  "app": "1.0.1",
+  "app": "1.0.2",
   "k8s/helm/charts/movie-rating": "1.0.1"
 }

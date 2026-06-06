@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/JvictorMarques/movie-rating/compare/app/v1.0.1...app/v1.0.2) (2026-06-06)
+
+
+### Bug Fixes
+
+* **app:** trigger release-please pipeline test ([c198e36](https://github.com/JvictorMarques/movie-rating/commit/c198e365ad7414d604d922de9ef64564c9e7ee7e))
+
 ## [1.0.1](https://github.com/JvictorMarques/movie-rating/compare/app/v1.0.0...app/v1.0.1) (2026-06-06)
 
 
