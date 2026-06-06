@@ -187,6 +187,15 @@ Two packages are tracked independently in `release-please-config.json`:
 
 Current versions are stored in `.release-please-manifest.json`. Both packages share `CHANGELOG.md` at the repo root.
 
+**Commit scope convention** — release-please uses the commit scope to attribute changes to the correct package. Always use the matching scope when your change touches that package:
+
+| Scope   | Package                                 | Example                                  |
+|---------|-----------------------------------------|------------------------------------------|
+| `app`   | `app/` (FastAPI app, tests, migrations) | `feat(app): add movie search endpoint`   |
+| `chart` | `k8s/helm/charts/movie-rating`          | `fix(chart): correct ingress annotation` |
+
+Commits without a matching scope (e.g. `k8s/env/`, `terraform/`, `docker/`) do not trigger a release bump.
+
 **CI/CD workflows** — `.github/workflows/` contains the following workflows:
 
 Reusable workflows (prefixed `_`, called via `workflow_call`):
@@ -225,7 +234,6 @@ The Python version used in CI is controlled by the `PYTHON_VERSION` repository v
 - `select = ['I', 'F', 'E', 'W', 'PL', 'PT']`; ignored: `PLR2004`, `PLR0917`, `PLR0913`
 - mypy with `pydantic.mypy` plugin; check `src/` only
 - pre-commit hooks at repo root: trailing whitespace, EOF fixer, YAML check, large-file check, ruff lint+format, hadolint (Dockerfile), mypy, pytest, terraform fmt/validate/tflint/docs, shellcheck (`scripts/`)
-
 
 ## Documentation updates
 

@@ -78,6 +78,8 @@ spec:
         env:
         - name: ENVIRONMENT
           value: production
+        - name: OTLP_ENDPOINT
+          value: {{ .Values.otlp.endpoint }}
         {{- end }}
         resources:
           requests:
