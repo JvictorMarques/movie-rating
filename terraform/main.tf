@@ -73,7 +73,6 @@ module "addons" {
   aws_load_balancer_controller_service_account_name = module.eks_pod_identities.aws_load_balancer_controller_service_account_name
   cluster_autoscaler_service_account_name           = module.eks_pod_identities.cluster_autoscaler_service_account_name
   external_secrets_service_account_name             = module.eks_pod_identities.external_secrets_service_account_name
-  ebs_csi_driver_service_account_role_arn           = module.eks_pod_identities.ebs_csi_driver_service_account_role_arn
 
   depends_on = [
     module.eks_cluster,
