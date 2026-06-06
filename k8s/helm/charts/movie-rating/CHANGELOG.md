@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/JvictorMarques/movie-rating/compare/chart/v1.0.1...chart/v1.0.2) (2026-06-06)
+
+
+### Bug Fixes
+
+* **chart:** update appVersion to 1.0.1 in Chart.yaml and add extra-files to release-please config ([699bb88](https://github.com/JvictorMarques/movie-rating/commit/699bb882c80f3ccd07957be8e33f73edde7d0a7c))
+
 ## [1.0.1](https://github.com/JvictorMarques/movie-rating/compare/chart/v1.0.0...chart/v1.0.1) (2026-06-06)
 
 
