@@ -38,7 +38,6 @@ No modules.
 | <a name="input_aws_load_balancer_controller_service_account_name"></a> [aws\_load\_balancer\_controller\_service\_account\_name](#input\_aws\_load\_balancer\_controller\_service\_account\_name) | The name of the service account for AWS Load Balancer Controller | `string` | n/a | yes |
 | <a name="input_cluster_autoscaler_service_account_name"></a> [cluster\_autoscaler\_service\_account\_name](#input\_cluster\_autoscaler\_service\_account\_name) | The name of the service account for Cluster Autoscaler | `string` | n/a | yes |
 | <a name="input_cluster_name"></a> [cluster\_name](#input\_cluster\_name) | The name of the EKS cluster | `string` | n/a | yes |
-| <a name="input_ebs_csi_driver_service_account_role_arn"></a> [ebs\_csi\_driver\_service\_account\_role\_arn](#input\_ebs\_csi\_driver\_service\_account\_role\_arn) | The ARN of the IAM role for EBS CSI Driver | `string` | n/a | yes |
 | <a name="input_external_secrets_service_account_name"></a> [external\_secrets\_service\_account\_name](#input\_external\_secrets\_service\_account\_name) | The name of the service account for External Secrets | `string` | n/a | yes |
 | <a name="input_region"></a> [region](#input\_region) | AWS region | `string` | n/a | yes |
 | <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | VPC ID where the EKS cluster is deployed | `string` | n/a | yes |

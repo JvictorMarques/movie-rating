@@ -46,7 +46,7 @@ No modules.
 | <a name="input_aws_load_balancer_controller_service_account_name"></a> [aws\_load\_balancer\_controller\_service\_account\_name](#input\_aws\_load\_balancer\_controller\_service\_account\_name) | The name of the service account for AWS Load Balancer Controller | `string` | `"aws-load-balancer-controller"` | no |
 | <a name="input_cluster_autoscaler_service_account_name"></a> [cluster\_autoscaler\_service\_account\_name](#input\_cluster\_autoscaler\_service\_account\_name) | The name of the service account for Cluster Autoscaler | `string` | `"cluster-autoscaler"` | no |
 | <a name="input_cluster_name"></a> [cluster\_name](#input\_cluster\_name) | The name of the EKS cluster | `string` | n/a | yes |
-| <a name="input_ebs_csi_driver_service_account_name"></a> [ebs\_csi\_driver\_service\_account\_name](#input\_ebs\_csi\_driver\_service\_account\_name) | The name of the service account for EBS CSI Driver | `string` | `"ebs-csi-driver"` | no |
+| <a name="input_ebs_csi_driver_service_account_name"></a> [ebs\_csi\_driver\_service\_account\_name](#input\_ebs\_csi\_driver\_service\_account\_name) | The name of the service account for EBS CSI Driver | `string` | `"ebs-csi-controller-sa"` | no |
 | <a name="input_external_secrets_service_account_name"></a> [external\_secrets\_service\_account\_name](#input\_external\_secrets\_service\_account\_name) | The name of the service account for External Secrets | `string` | `"external-secrets"` | no |
 | <a name="input_project_name"></a> [project\_name](#input\_project\_name) | The name of the project | `string` | n/a | yes |
 

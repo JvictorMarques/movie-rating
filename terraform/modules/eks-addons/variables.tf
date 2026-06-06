@@ -27,8 +27,3 @@ variable "external_secrets_service_account_name" {
   description = "The name of the service account for External Secrets"
   type        = string
 }
-
-variable "ebs_csi_driver_service_account_role_arn" {
-  description = "The ARN of the IAM role for EBS CSI Driver"
-  type        = string
-}

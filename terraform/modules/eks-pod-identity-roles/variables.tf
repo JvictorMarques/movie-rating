@@ -29,5 +29,5 @@ variable "external_secrets_service_account_name" {
 variable "ebs_csi_driver_service_account_name" {
   description = "The name of the service account for EBS CSI Driver"
   type        = string
-  default     = "ebs-csi-driver"
+  default     = "ebs-csi-controller-sa"
 }
