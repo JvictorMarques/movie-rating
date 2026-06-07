@@ -108,7 +108,7 @@ k8s/
 └── helm/packages/                    # Packaged Helm chart tarballs (.tgz) for distribution/OCI push
 ```
 
-**AWS addon management:** In the AWS environment, cluster addons (ArgoCD, AWS Load Balancer Controller, Cluster Autoscaler, External Secrets Operator, Metrics Server) are **not** managed by ArgoCD. They are installed via the `eks-helm-releases` Terraform module (`terraform/modules/eks-helm-releases`), which receives service account names from the `eks-pod-identity-roles` module and depends on `eks_cluster` and `eks_pod_identities`. There is no `apps.yaml` ApplicationSet for the AWS environment — ArgoCD only manages the app chart there.
+**AWS addon management:** In the AWS environment, cluster addons (ArgoCD, AWS Load Balancer Controller, Cluster Autoscaler, External Secrets Operator, Metrics Server) are **not** managed by ArgoCD. They are installed via the `eks-helm-releases` Terraform module (`terraform/modules/eks-helm-releases`), which receives service account names from the `eks-pod-identity-roles` module and depends on `eks_cluster` and `eks_pod_identities`. In the AWS environment there are two ArgoCD resources managed in `k8s/env/aws/argo/`: `apps.yaml` (an ApplicationSet that deploys the full observability stack — Mimir, Tempo, Loki, Grafana, `otel-collector`, `otel-collector-node` — using values from `k8s/env/aws/values/`) and `movie-rating.yaml` (the app chart Application).
 
 **Releases managed by ArgoCD ApplicationSet** (`k8s/env/local/argo/apps.yaml`, local only):
 

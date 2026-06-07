@@ -333,6 +333,8 @@ movie-rating/
 │   ├── app/
 │   │   ├── load_test.py        # End-to-end load test
 │   │   └── latency_sim.py      # Burst traffic / p99 latency simulator
+│   ├── aws/
+│   │   └── build.sh            # Build and push Docker images + Helm chart to ECR
 │   └── k8s/cluster/
 │       └── setup.sh            # Automated kind cluster setup
 ├── terraform/                  # AWS infrastructure (VPC, ECR, RDS, SSM, EKS modules)
@@ -428,9 +430,16 @@ k8s/
 │   └── aws/                              # AWS (EKS) environment
 │       ├── main.yaml                     # ArgoCD App of Apps — bootstraps the AWS cluster
 │       ├── argo/
+│       │   ├── apps.yaml                 # ApplicationSet — observability stack (Mimir, Tempo, Loki, Grafana, OTel)
 │       │   └── movie-rating.yaml         # ArgoCD Application for the app chart
 │       └── values/
-│           └── movie-rating.yaml         # Helm values for the app chart
+│           ├── grafana.yaml
+│           ├── loki.yaml
+│           ├── mimir.yaml
+│           ├── movie-rating.yaml         # Helm values for the app chart
+│           ├── otel-collector.yaml
+│           ├── otel-collector-node.yaml
+│           └── tempo.yaml
 └── helm/
     └── charts/
         └── movie-rating/                 # Application Helm chart
@@ -567,14 +576,13 @@ The API will then be available at `http://movie-rating.local.com/api/v1/`.
 |---|---|---|
 | `local.enabled` | `true` | Enables local-only resources (PostgreSQL subchart, Kubernetes `Secret`). Set to `false` for AWS. |
 | `app.image.tag` | `movie-rating` | Image repository name (local) or ECR URI (AWS) |
-| `app.image.version` | `1.0.0` | Image tag appended to `app.image.tag` |
+| `app.image.version` | `Chart.AppVersion` | Image tag appended to `app.image.tag`; defaults to the chart's `appVersion` if not set |
 | `app.ingress.enabled` | `true` | Whether to render the Ingress resource |
 | `app.ingress.host` | `movie-rating.local.com` | Ingress hostname |
 | `app.ingress.className` | `kong` | Ingress class (`kong` locally, `alb` on AWS) |
 | `migrations.image.tag` | `movie-rating-migrations` | Image name or ECR URI for the migrations Job. The final image is `<tag>:migrations-<version>` — override to `movie-rating` (local) or the ECR URI (AWS) |
-| `migrations.image.version` | `1.0.0` | Version portion of the migrations tag; combined as `migrations-<version>` |
+| `migrations.image.version` | `Chart.AppVersion` | Version portion of the migrations tag; combined as `migrations-<version>`; defaults to the chart's `appVersion` if not set |
 | `otlp.endpoint` | (otel-collector cluster DNS) | OTLP gRPC endpoint injected into the app Secret |
-| `secretStore.name` | `aws-ssm` | Name of the `SecretStore` resource (AWS only) |
 | `secretStore.region` | `us-east-1` | AWS region for SSM Parameter Store (AWS only) |
 
 ### AWS deployment
@@ -582,13 +590,13 @@ The API will then be available at `http://movie-rating.local.com/api/v1/`.
 When `local.enabled: false`, the chart targets an AWS EKS cluster and switches from local resources to AWS-managed ones:
 
 - **PostgreSQL** — the Bitnami subchart is disabled; the app connects to an RDS instance provisioned by the Terraform `rds` module
-- **Secrets** — instead of a plain Kubernetes `Secret`, the chart renders an `ExternalSecret` for both the app and the migrations Job. The External Secrets Operator (installed via the `eks-helm-releases` Terraform module) syncs credentials from AWS SSM Parameter Store into the cluster
-- **SecretStore** — a `SecretStore` resource is created to point the External Secrets Operator at the correct SSM path and region. The `secretStore.name` and `secretStore.region` values are required when `local.enabled: false`
+- **Secrets** — instead of a plain Kubernetes `Secret`, the chart renders an `ExternalSecret` for both the app and the migrations Job. The External Secrets Operator (installed via the `eks-addons` Terraform module) syncs credentials from AWS SSM Parameter Store into the cluster
+- **SecretStore** — a `SecretStore` resource is created to point the External Secrets Operator at the correct SSM path and region. The `secretStore.region` value is required when `local.enabled: false`
 - **Ingress** — `app.ingress.className` should be set to `alb`; the chart adds the ALB-specific annotations (`target-type: ip`, `scheme: internet-facing`, `healthcheck-path: /health`) automatically
 
 #### 1. Build and push images to ECR
 
-> **Note:** Docker image builds and pushes to ECR are automated by GitHub Actions (`main-docker.yaml` on push to `main` or `app/v*.*.*` tags, and as part of the `manual-infrastructure-apply.yaml` deploy workflow). For manual builds, use `scripts/aws/build.sh` (requires `--account-id`; optionally accepts `--region`, `--application-repository`, and `--helm-repository`). To build and push manually:
+> **Note:** Docker image builds and pushes to ECR are automated by GitHub Actions (`main-docker.yaml` on `app/v*.*.*` tags, and as part of the `manual-infrastructure-apply.yaml` deploy workflow). For manual builds, use `scripts/aws/build.sh` (requires `--account-id`; optionally accepts `--region`, `--application-repository`, and `--helm-repository`). To build and push manually:
 
 Build each image using the correct `--target` and push to your ECR repository. Follow the [AWS ECR push image guide](https://docs.aws.amazon.com/AmazonECR/latest/userguide/docker-push-ecr-image.html) for authentication and push steps — the only difference per image is the `--target` flag:
 
@@ -614,7 +622,7 @@ Edit `k8s/env/aws/values/movie-rating.yaml` and fill in the image URIs and secre
 
 #### 3. Deploy with ArgoCD
 
-ArgoCD and all cluster addons (AWS Load Balancer Controller, Cluster Autoscaler, External Secrets Operator, Metrics Server) are installed by the `eks-helm-releases` Terraform module — no manual Helm install needed. Once Terraform finishes, configure `kubectl` and apply the App of Apps manifest:
+ArgoCD and all cluster addons (AWS Load Balancer Controller, Cluster Autoscaler, External Secrets Operator, Metrics Server, EBS CSI Driver) are installed by the `eks-addons` Terraform module — no manual Helm install needed. Once Terraform finishes, configure `kubectl` and apply the App of Apps manifest:
 
 ```bash
 aws eks update-kubeconfig --region <region> --name <cluster-name>
@@ -623,7 +631,9 @@ aws eks update-kubeconfig --region <region> --name <cluster-name>
 kubectl apply -f k8s/env/aws/main.yaml
 ```
 
-ArgoCD will sync the movie-rating chart from the repository automatically. The full AWS infrastructure provisioning and app bootstrap is also available as a GitHub Actions workflow (`manual-infrastructure-apply.yaml`, `workflow_dispatch`).
+The App of Apps bootstraps both the `movie-rating` application chart (`k8s/env/aws/argo/movie-rating.yaml`) and the `observability` ApplicationSet (`k8s/env/aws/argo/apps.yaml`), which deploys Mimir, Tempo, Loki, Grafana, and the OTel Collector into the `observability` namespace.
+
+ArgoCD will sync all releases from the repository automatically. The full AWS infrastructure provisioning and app bootstrap is also available as a GitHub Actions workflow (`manual-infrastructure-apply.yaml`, `workflow_dispatch`).
 
 ---
 
@@ -645,7 +655,7 @@ terraform/
     ├── ssm/                    # SSM Parameter Store — DB credentials and JWT secret
     ├── eks/                    # EKS cluster + managed node group + OIDC provider for IRSA
     ├── eks-pod-identity-roles/ # IAM Pod Identity roles for LBC, Cluster Autoscaler, and External Secrets
-    └── eks-helm-releases/      # Helm releases for cluster addons (ArgoCD, LBC, Cluster Autoscaler, ESO, Metrics Server)
+    └── eks-addons/             # Cluster addons: ArgoCD, LBC, Cluster Autoscaler, ESO, Metrics Server, EBS CSI Driver
 ```
 
 ### Module overview
@@ -658,7 +668,7 @@ terraform/
 | `ssm` | SSM SecureString parameters for DB credentials + auto-generated JWT secret (`random_password`) |
 | `eks` | EKS cluster + managed node group + OIDC provider (enables IRSA for add-ons) |
 | `eks-pod-identity-roles` | IAM Pod Identity roles for AWS Load Balancer Controller, Cluster Autoscaler, and External Secrets Operator |
-| `eks-helm-releases` | Installs cluster addons via Helm: ArgoCD, AWS Load Balancer Controller, Cluster Autoscaler, External Secrets Operator, Metrics Server |
+| `eks-addons` | Installs cluster addons: ArgoCD, AWS Load Balancer Controller, Cluster Autoscaler, External Secrets Operator, Metrics Server, EBS CSI Driver (with `gp3` StorageClass) |
 
 ### Usage
 
@@ -670,6 +680,61 @@ terraform apply
 ```
 
 All modules receive their inputs from the root `main.tf` — the RDS endpoint and credentials are automatically forwarded to SSM after the database is created.
+
+---
+
+## CI/CD
+
+Workflows live in `.github/workflows/`. Reusable workflows are prefixed with `_` and called via `workflow_call`; trigger workflows respond to events.
+
+### Reusable workflows
+
+| Workflow | Purpose |
+|---|---|
+| `_ci-app.yaml` | Lint, type-check, run migrations against a real PostgreSQL service, test, and upload coverage artifact |
+| `_ci-docker.yaml` | Lint Dockerfile via hadolint |
+| `_ci-terraform.yaml` | fmt check, init, tflint, plan; posts plan output as a PR comment |
+| `_build-push-docker-images.yaml` | Build and push Docker images (`runtime` + `migrations` targets) to GHCR and/or ECR |
+| `_build-push-helm-charts.yaml` | Package and push the Helm chart to GHCR and/or ECR |
+
+### Trigger workflows
+
+| Workflow | Trigger | Purpose |
+|---|---|---|
+| `pr-ci.yaml` | Pull request to `main` | Detects changed paths and calls relevant reusable CI workflows; a final `validate` job gates merge |
+| `main-docker.yaml` | Push to `app/v*.*.*` tags | Calls `_build-push-docker-images.yaml` targeting both GHCR and ECR |
+| `main-helm.yaml` | Push to `chart/v*.*.*` tags | Calls `_build-push-helm-charts.yaml` targeting both GHCR and ECR |
+| `main-docs.yaml` | Push to `main` (`app/docs/**`, `app/mkdocs.yml`) or `workflow_dispatch` | Deploys MkDocs documentation to GitHub Pages at [`https://jvictormarques.github.io/movie-rating/`](https://jvictormarques.github.io/movie-rating/) |
+| `manual-infrastructure-apply.yaml` | `workflow_dispatch` (`apply` or `update`) | Runs `terraform apply`; on `apply` also builds and pushes Docker images and Helm chart, then deploys the ArgoCD App of Apps via `kubectl apply` |
+| `manual-infrastructure-destroy.yaml` | `workflow_dispatch` | Removes the ArgoCD App of Apps via `kubectl delete`, then runs `terraform destroy` |
+| `release-please.yaml` | Push to `main` (`app/**`, `k8s/helm/charts/**`) | Opens versioned release PRs via release-please for the `app` and `chart` packages |
+
+### Dependabot
+
+Automated dependency updates via `.github/dependabot.yml` — opens weekly PRs for four ecosystems:
+
+| Ecosystem | Directory | Label |
+|---|---|---|
+| `pip` | `/app` | `app` |
+| `github-actions` | `/` | `pipelines` |
+| `docker` | `/app` | `docker` |
+| `terraform` | `/terraform` | `terraform` |
+
+### Repository variables and secrets
+
+| Name | Type | Used by |
+|---|---|---|
+| `vars.PYTHON_VERSION` | Variable | Python version in app CI |
+| `vars.TF_VERSION` | Variable | Terraform version in terraform CI and deploy workflows |
+| `vars.AWS_REGION` | Variable | AWS region for ECR, EKS, and credential configuration |
+| `vars.EKS_CLUSTER_NAME` | Variable | EKS cluster name for kubeconfig update |
+| `vars.ECR_DOCKER_REGISTRY` | Variable | ECR repository name for Docker images |
+| `vars.ECR_HELM_REGISTRY` | Variable | ECR repository name for the Helm chart |
+| `vars.TF_STATE_BUCKET` | Variable | S3 bucket for Terraform remote state |
+| `vars.TF_STATE_KEY` | Variable | S3 key for Terraform remote state |
+| `secrets.AWS_ROLE_TO_ASSUME` | Secret | IAM role ARN for OIDC-based AWS authentication |
+| `secrets.ACCOUNT_ID` | Secret | AWS account ID for ECR URI construction |
+| `secrets.RELEASE_PLEASE_TOKEN` | Secret | GitHub token with write access for release-please PRs |
 
 ---
 
