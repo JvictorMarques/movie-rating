@@ -1,4 +1,4 @@
-FROM python:3.13.13-alpine3.23 AS builder
+FROM python:3.14-alpine3.23 AS builder
 
 ENV PATH="/app/.venv/bin:$PATH"
 ARG UV_VERSION=0.11.11
@@ -16,7 +16,7 @@ RUN uv sync \
 
 COPY . .
 
-FROM python:3.13.13-alpine3.23 AS runtime
+FROM python:3.14-alpine3.23 AS runtime
 
 ARG CURL_VERSION=8.19.0-r0
 ARG USER=app
@@ -38,7 +38,7 @@ ENV PATH="/app/.venv/bin:$PATH"
 
 ENTRYPOINT ["fastapi", "run", "app.py"]
 
-FROM python:3.13.13-alpine3.23 AS migrations
+FROM python:3.14-alpine3.23 AS migrations
 
 ARG UV_VERSION=0.11.11 \
     GCC_VERSION=15.2.0-r2 \
