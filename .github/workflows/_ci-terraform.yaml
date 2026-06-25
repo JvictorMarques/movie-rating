@@ -21,7 +21,7 @@ jobs:
       TF_LINT_VERSION: v0.62.1
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6.0.3
+        uses: actions/checkout@v7.0.0
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v4.0.1
