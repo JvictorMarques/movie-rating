@@ -111,7 +111,7 @@ jobs:
 
       - name: Build and push image
         if: ${{ matrix.registry != 'ecr' || steps.verify_ecr.outcome == 'success' }}
-        uses: docker/build-push-action@v7.2.0
+        uses: docker/build-push-action@v7.3.0
         with:
           context: ./app
           target: ${{ matrix.targets }}
