@@ -63,7 +63,7 @@ jobs:
 
       - name: Configure AWS credentials
         if: ${{ matrix.registry == 'ecr' }}
-        uses: aws-actions/configure-aws-credentials@v6.2.0
+        uses: aws-actions/configure-aws-credentials@v6.2.1
         with:
           aws-region: ${{ vars.AWS_REGION }}
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
